@@ -85,6 +85,7 @@ dev::reset() {
 
     echo '==> reload mise'
     mise install
+    eval "$(mise --cd "$repo_dir" hook-env --shell 'bash' 2> /dev/null)"
 
     echo '==> install dependencies'
     npm install
