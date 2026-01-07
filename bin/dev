@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+
+set -e
+
+declare script_dir
+script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+declare repo_dir
+repo_dir="$(dirname "$script_dir")"
+
+# go to root of repo
+# NOTE: all current scripts expect to run from the root (or are indifferent). If
+# you add scripts that depend on being in (or knowing the users current
+# directory), especially scripts with take parameters which are file paths,
+# you'll need to either keep track of the current directory (ie. store $PWD), or
+# move this cd to the relevant scripts.
+cd "$repo_dir"
+
+# load mise environment (in case we're run from outside the project directory)
+eval "$(mise --cd "$repo_dir" hook-env --shell 'bash' 2> /dev/null)"
+
+dev::usage() {
+    echo 'usage: dev <command>'
+    echo '       dev setup            # install system dependencies & reset app'
+    echo '       dev reset            # deletes temp files and sets project back up'
+    echo '       dev start            # run dev server'
+    echo '       dev desktop          # run desktop app'
+    echo '       dev android          # run android mobile app'
+    echo '       dev ios              # run ios mobile app'
+    echo '       dev lint             # run linters'
+    echo '       dev lint fix         # fix auto-fixable linter errors'
+    echo '       dev db seed          # run seeds'
+    echo '       dev db local         # connect to local database'
+    echo '       dev db prod          # connect to production database'
+    echo '       dev db migrate local # migrate local database'
+    echo '       dev env edit dev     # edit encrypted local development env vars'
+    echo '       dev env edit preview # edit encrypted preview env vars'
+    echo '       dev env edit prod    # edit encrypted production env vars'
+    exit 1
+}
+
+dev::setup() {
+    echo '==> install brew'
+    if ! type 'brew' > /dev/null 2>&1; then
+        /bin/bash -c "$(curl -fsSL --tlsv1.2 https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+
+    echo '==> install dependencies'
+    brew install \
+        mise \
+        homebrew/cask/docker \
+        homebrew/cask/android-studio \
+        neonctl \
+        postgresql
+
+    echo '==> create .env.local'
+    if [[ ! -f .env.local ]]; then
+        echo '# override defaults from .env' > .env.local
+    fi
+
+    echo '==> allow mise to load project directory'
+    mise trust --all
+
+    if ! docker ps > /dev/null 2>&1; then
+        echo '==> start docker'
+        open -a 'Docker'
+
+        echo -n '==> waiting for docker'
+        while ! docker ps > /dev/null 2>&1; do
+            echo -n '.'
+            sleep 1
+        done
+        echo
+    fi
+
+    echo '==> dev reset'
+    dev::reset
+}
+
+dev::reset() {
+    echo '==> stop db'
+    dev::stop
+
+    echo '==> delete git ignored files'
+    git clean -ffdX -e '!/.env.local' -e '!/.vscode/settings.json'
+
+    echo '==> reload mise'
+    mise install
+
+    echo '==> install dependencies'
+    npm install
+
+    echo '==> build packages'
+    turbo run build --filter='./packages/*'
+}
+
+dev::start() {
+    trap 'dev::stop' EXIT
+
+    # start db
+    dev::db::up
+
+    # push schema to db
+    npx -w @repo/backend prisma migrate deploy
+
+    # run seeds
+    dev::db::seed
+
+    # run dev
+    turbo dev
+}
+
+dev::stop() {
+    docker compose down -v
+}
+
+dev::desktop() {
+    npm run -w @repo/desktop desktop
+}
+
+dev::android() {
+    npm run -w @repo/mobile android
+}
+
+dev::ios() {
+    # NOTE: we kill the expo app when the server closes so that when we restart
+    # the expo server, it'll actually relaunch the app (otherwise it just sits
+    # there with the previous version of the app, not connected to the server)
+    trap 'xcrun simctl terminate booted host.exp.Exponent 2>/dev/null' EXIT
+
+    npm run -w @repo/mobile ios
+}
+
+dev::lint() {
+    turbo run lint lint:root typecheck typecheck:root --continue=dependencies-successful
+}
+
+dev::lint::fix() {
+    turbo run lint:eslint lint:eslint:root --continue=dependencies-successful -- --fix
+    turbo run lint:prettier lint:prettier:root --continue=dependencies-successful -- --write
+}
+
+dev::db::up() {
+    # start db if it's not running
+    if ! psql "$DATABASE_URL" -c 'SELECT true;' > /dev/null 2>&1; then
+        docker compose up -d --build --remove-orphans
+
+        echo -n '==> Waiting for db' >&2
+        until psql "$DATABASE_URL" -c 'SELECT true;' > /dev/null 2>&1; do
+            echo -n '.' >&2
+            sleep 1
+        done
+        echo >&2
+    fi
+}
+
+dev::db::seed() {
+    node --experimental-strip-types ./packages/backend/src/db/seed.ts
+}
+
+dev::db::local() {
+    dev::db::up
+
+    psql "$DATABASE_URL"
+}
+
+dev::db::prod() {
+    if ! neonctl me > /dev/null 2>&1; then
+        neonctl auth
+    fi
+
+    psql "$(neonctl connection-string 'main' --database-name 'ptat')"
+}
+
+dev::db::migrate::local() {
+    dev::db::up
+
+    npx -w @repo/backend prisma migrate dev
+}
+
+dev::sops() {
+    EDITOR="${PTAT_DEV_EDITOR:-$EDITOR}" \
+        sops \
+        --unencrypted-regex '(_unencrypted$|^EXPO_PUBLIC_|^NEXT_PUBLIC_)' \
+        "$@"
+}
+
+dev::env::edit::dev() {
+    dev::sops "$@" .env.development.yaml
+}
+
+dev::env::edit::preview() {
+    dev::sops "$@" .env.preview.yaml
+}
+
+dev::env::edit::prod() {
+    dev::sops "$@" .env.production.yaml
+}
+
+case "$*" in
+    setup) dev::setup ;;
+    reset) dev::reset ;;
+    start) dev::start ;;
+    desktop) dev::desktop ;;
+    android) dev::android ;;
+    ios) dev::ios ;;
+    lint) dev::lint ;;
+    'lint fix') dev::lint::fix ;;
+    'db seed') dev::db::seed ;;
+    'db local') dev::db::local ;;
+    'db prod') dev::db::prod ;;
+    'db migrate local') dev::db::migrate::local ;;
+    'db migrate prod') dev::db::migrate::prod ;;
+    'env edit dev'*) dev::env::edit::dev "${@:4}" ;;
+    'env edit preview'*) dev::env::edit::preview "${@:4}" ;;
+    'env edit prod'*) dev::env::edit::prod "${@:4}" ;;
+    *) dev::usage ;;
+esac

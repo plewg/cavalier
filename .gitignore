@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.turbo/
+.next/
+.expo/
+.vercel
+.eslintcache
+.DS_Store
+/.env*.local
+/.vscode/settings.json
+/target/
+/apps/desktop/out/
+/apps/desktop/src-tauri/gen/schemas/
+/.husky/_/

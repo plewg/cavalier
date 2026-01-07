@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+turbo run lint:package-lock typecheck typecheck:root
+npx lint-staged

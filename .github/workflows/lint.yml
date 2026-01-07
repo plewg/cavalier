@@ -1,0 +1,25 @@
+name: lint
+on:
+  # NOTE: The ref for pull request triggered events defaults to
+  # `refs/pull/<pr-number>/merge`, this is essentially the virtual merge ref
+  # that would be created if the pr was merged. This means your linting checks
+  # actually gives you a much better idea of whether the linting will pass once
+  # merged.
+  pull_request:
+  push:
+    branches:
+      - main
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+      - name: Install dependencies
+        run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint

@@ -1,0 +1,90 @@
+name: preview
+on:
+  pull_request:
+    branches:
+      - main
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  preview:
+    name: Preview
+    environment:
+      name: Preview
+      url: ${{ steps.deploy.outputs.app_url }}
+    # TODO: remove, you don't need this (it's just here to prevent the template repo itself trying to deploy)
+    if: github.repository != 'pentible/typescript-app-template'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+      - run: npm ci
+
+      # update db
+      - name: Create Neon Branch
+        id: branch
+        uses: neondatabase/create-branch-action@v4
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          username: ${{ vars.NEON_DATABASE_USERNAME }}
+          database: ${{ vars.NEON_DATABASE_NAME }}
+          branch_name: |-
+            preview/pr-${{ github.event.number }}-${{ github.event.pull_request.head.ref }}
+      - name: Run Migrations
+        env:
+          DATABASE_URL: ${{ steps.branch.outputs.db_url }}
+        run: npx -w @repo/backend prisma migrate deploy
+
+      # deploy
+      - name: Install sops
+        uses: mdgreenwald/mozilla-sops-action@v1.5.0
+      - name: Install Vercel CLI
+        run: |
+          npm install --global vercel@latest
+          vercel --version
+      - name: Deploy
+        id: deploy
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_SCOPE: ${{ vars.VERCEL_SCOPE }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ github.event.repository.name }}
+          DATABASE_URL: ${{ steps.branch.outputs.db_url_with_pooler }}
+        run: |
+          # branch url
+          branch_url_safe="$(echo -n "$GITHUB_HEAD_REF" | tr -c '[:alnum:]' '-' | tr '[:upper:]' '[:lower:]')"
+          branch_url="${VERCEL_PROJECT_ID}-git-${branch_url_safe}-${VERCEL_SCOPE}.vercel.app"
+          app_url="https://${branch_url}"
+
+          # decrypt deploy envs
+          readarray -t envs < <(
+              sops --decrypt --output-type json .env.preview.yaml \
+                  | jq --raw-output '
+                      with_entries(.key |= sub("_unencrypted$"; ""))
+                      | to_entries[]
+                      | "\(.key)=\(.value)"
+                  '
+          )
+
+          # append dynamic envs
+          envs+=(
+              "APP_URL=${app_url}"
+              "DATABASE_URL=${DATABASE_URL}"
+          )
+
+          # build env args
+          declare -a args=()
+          for env in "${envs[@]}"; do
+              args+=(-b "$env" -e "$env")
+          done
+
+          # deploy
+          deploy_url="$(vercel --token="$VERCEL_TOKEN" deploy "${args[@]}")"
+          vercel --token="$VERCEL_TOKEN" alias set "$deploy_url" "$branch_url"
+
+          # outputs
+          echo "app_url=${app_url}" >> "$GITHUB_OUTPUT"

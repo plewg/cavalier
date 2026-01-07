@@ -1,0 +1,7 @@
+creation_rules:
+  - path_regex: \.env\..*\.yaml$
+    age: age-key
+
+stores:
+  yaml:
+    indent: 2
