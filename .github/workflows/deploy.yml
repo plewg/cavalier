@@ -12,7 +12,7 @@ jobs:
     name: Deploy
     environment:
       name: Production
-      url: https://ptat.example.com
+      url: https://cavalier.example.com
     # TODO: remove github.repository check, you don't need it (it's just here to prevent the template repo itself trying to deploy)
     if: >
       github.repository != 'pentible/typescript-app-template' &&
@@ -37,7 +37,7 @@ jobs:
             neonctl connection-string \
               'main' \
               --project-id "$NEON_PROJECT_ID" \
-              --database-name 'ptat'
+              --database-name 'cavalier'
           )" >> "$GITHUB_ENV"
       - name: Run Migrations
         run: npx -w @repo/backend prisma migrate deploy

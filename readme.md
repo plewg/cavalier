@@ -11,7 +11,6 @@ DB.
     - mobile: `apps/mobile`
     - desktop: `apps/desktop`
     - web: `apps/web`
-- find/replace `ptat` with your app name
 - find/replace `example.com` with your org domain
 - find/replace `com.example` with your org reverse domain
 - consider replacing license in `package.json`
@@ -43,7 +42,7 @@ DB.
     - create secret key
 
         ```bash
-        declare name='ptat'
+        declare name='cavalier'
         
         # create key
         age-keygen -o "${HOME}/${name}.private"
@@ -67,9 +66,9 @@ DB.
       `EDITOR='code --wait' dev env edit prod`)
 
         ```yaml
-        DATABASE_URL: postgres://ptat:password@localhost:5432/ptat
+        DATABASE_URL: postgres://cavalier:password@localhost:5432/cavalier
         # NOTE: you can append `_unencrypted` to keys which you don't want encrypted
-        APP_URL_unencrypted: https://ptat.example.com
+        APP_URL_unencrypted: https://cavalier.example.com
         ```
 
     - create preview env file: `dev env edit preview` (or in vscode:
@@ -100,7 +99,8 @@ DB.
     - `VERCEL_SCOPE` (your vercel team, or personal account name)
 
 - setup neon db
-    - create a database in your project `neonctl databases create --name ptat`
+    - create a database in your project
+      `neonctl databases create --name cavalier`
     - update the database name in `bin/dev`'s `dev::db::prod` function (if you
       haven't already)
 
@@ -114,7 +114,7 @@ DB.
 
 ---
 
-# ptat
+# cavalier
 
 ## Local dev
 

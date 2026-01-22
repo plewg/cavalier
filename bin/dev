@@ -169,7 +169,7 @@ dev::db::prod() {
         neonctl auth
     fi
 
-    psql "$(neonctl connection-string 'main' --database-name 'ptat')"
+    psql "$(neonctl connection-string 'main' --database-name 'cavalier')"
 }
 
 dev::db::migrate::local() {
@@ -179,7 +179,7 @@ dev::db::migrate::local() {
 }
 
 dev::sops() {
-    EDITOR="${PTAT_DEV_EDITOR:-$EDITOR}" \
+    EDITOR="${CAVALIER_DEV_EDITOR:-$EDITOR}" \
         sops \
         --unencrypted-regex '(_unencrypted$|^EXPO_PUBLIC_|^NEXT_PUBLIC_)' \
         "$@"

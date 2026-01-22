@@ -2,7 +2,7 @@ services:
   database:
     image: postgres:16.2
     environment:
-      POSTGRES_USER: ptat
+      POSTGRES_USER: cavalier
       POSTGRES_PASSWORD: password
     ports:
       - 5432:5432

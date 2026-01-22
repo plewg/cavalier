@@ -11,7 +11,7 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-    title: "ptat",
+    title: "cavalier",
     description: "bootstrapped with pentible/typescript-app-template",
 };
 
