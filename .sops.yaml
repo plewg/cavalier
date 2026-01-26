@@ -1,6 +1,6 @@
 creation_rules:
   - path_regex: \.env\..*\.yaml$
-    age: age-key
+    age: age1jwju95jls7292vue23wjd567pnng2tv7ma6564zr3n7pj9axxe4shataxs
 
 stores:
   yaml:

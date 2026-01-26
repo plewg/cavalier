@@ -12,7 +12,7 @@ jobs:
     name: Deploy
     environment:
       name: Production
-      url: https://cavalier.example.com
+      url: https://cavalier.vercel.app
     # TODO: remove github.repository check, you don't need it (it's just here to prevent the template repo itself trying to deploy)
     if: >
       github.repository != 'pentible/typescript-app-template' &&
