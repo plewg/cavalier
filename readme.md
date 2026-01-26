@@ -10,8 +10,6 @@
 eval "$(mise activate zsh)"
 # or for bash
 # eval "$(mise activate bash)"
-
-source "$HOME/.cargo/env"
 ```
 
 - (optionally) configure mise: `~/.config/mise/settings.toml`
