@@ -181,7 +181,7 @@ dev::db::prod() {
         neonctl auth
     fi
 
-    psql "$(neonctl connection-string 'main' --database-name 'cavalier')"
+    psql "$(neonctl connection-string 'production' --database-name 'cavalier')"
 }
 
 dev::db::migrate::local() {
