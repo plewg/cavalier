@@ -61,7 +61,6 @@ dev::setup() {
         brew install \
             mise \
             homebrew/cask/docker \
-            neonctl \
             postgresql
     fi
 
