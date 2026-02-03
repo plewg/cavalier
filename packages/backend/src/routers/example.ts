@@ -7,7 +7,4 @@ export const exampleRouter = createTrpcRouter({
         .query(({ input }) => ({
             greeting: `Hello ${input.text}`,
         })),
-    getAll: publicProcedure.query(
-        async ({ ctx }) => await ctx.prisma.example.findMany(),
-    ),
 });
