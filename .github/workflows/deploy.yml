@@ -25,23 +25,6 @@ jobs:
           node-version-file: package.json
       - run: npm ci
 
-      # update db
-      - name: Install neonctl
-        run: npm i -g neonctl@2.9.0
-      - name: Fetch database credentials
-        env:
-          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
-          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
-        run: |
-          echo "DATABASE_URL=$(
-            neonctl connection-string \
-              'main' \
-              --project-id "$NEON_PROJECT_ID" \
-              --database-name 'cavalier'
-          )" >> "$GITHUB_ENV"
-      - name: Run Migrations
-        run: npx -w @repo/backend prisma migrate deploy
-
       # decrypt env
       - name: Install sops
         uses: mdgreenwald/mozilla-sops-action@v1.5.0
@@ -54,6 +37,16 @@ jobs:
             | jq --compact-output 'with_entries(.key |= sub("_unencrypted$"; ""))'
           )"
           echo "APP_ENVS=${envs}" >> "$GITHUB_ENV"
+
+          echo "DATABASE_URL=$(
+            sops decrypt --extract '["DATABASE_URL"]' .env.production.yaml
+          )" >> "$GITHUB_ENV"
+
+      # update db
+      - name: Install neonctl
+        run: npm i -g neonctl@2.9.0
+      - name: Run Migrations
+        run: npx -w @repo/backend prisma migrate deploy
 
       # deploy
       - name: Install Vercel CLI
