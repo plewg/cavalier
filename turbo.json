@@ -9,8 +9,7 @@
         },
         "build": {
             "outputLogs": "errors-only",
-            "dependsOn": ["^build"],
-            "outputs": [".next/**"]
+            "dependsOn": ["^build"]
         },
         "typecheck": {
             "outputLogs": "errors-only",
