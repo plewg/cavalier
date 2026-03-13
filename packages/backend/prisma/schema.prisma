@@ -13,14 +13,10 @@ model User {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    displayName     String
-    lastRefreshedAt DateTime
-    raw             Json
-
     sessions      Session[]
     subscriptions Subscription[]
     userVideos    UserVideo[]
-    Setting       Setting[]
+    setting       Setting[]
 
     @@index([createdAt])
     @@index([updatedAt])
@@ -72,7 +68,7 @@ model Channel {
     raw             Json
 
     videos   Video[]
-    Playlist Playlist[]
+    playlist Playlist[]
 
     @@index([createdAt])
     @@index([updatedAt])
@@ -118,7 +114,7 @@ model Video {
     channel          Channel        @relation(fields: [channelId], references: [id])
     channelId        String         @db.VarChar(24)
     unusedUserVideos UserVideo[]
-    PlaylistItem     PlaylistItem[]
+    playlistItem     PlaylistItem[]
 
     @@index([channelId])
     @@index([createdAt])
