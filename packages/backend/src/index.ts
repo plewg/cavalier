@@ -3,7 +3,7 @@ import type { AppRouter } from "#src/routers/root.js";
 
 export { prisma } from "#src/db/prisma.js";
 export { appRouter, type AppRouter } from "#src/routers/root.js";
-export { createTrpcContext } from "#src/trpc.js";
+export { createTrpcContext, appToken } from "#src/trpc.js";
 
 /**
  * @example type HelloInput = RouterInputs['example']['hello']

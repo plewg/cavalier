@@ -52,7 +52,7 @@ export async function createTrpcContext({
     };
 }
 
-const appToken = "APP_TOKEN";
+export const appToken = "CAVALIER_TOKEN";
 async function getSession(cookies: ReadonlyRequestCookies) {
     const token = cookies.get(appToken);
     if (!token) {
