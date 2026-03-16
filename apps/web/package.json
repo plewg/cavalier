@@ -13,6 +13,8 @@
         "typecheck": "tsc --noEmit"
     },
     "dependencies": {
+        "@googleapis/youtube": "31.0.0",
+        "@paralleldrive/cuid2": "2.2.2",
         "@repo/backend": "*",
         "@t3-oss/env-nextjs": "0.13.8",
         "@tanstack/react-query": "5.80.7",
@@ -20,6 +22,9 @@
         "@trpc/client": "11.4.2",
         "@trpc/server": "11.4.2",
         "@trpc/tanstack-react-query": "11.4.2",
+        "google-auth-library": "10.6.1",
+        "jsonwebtoken": "9.0.3",
+        "luxon": "3.7.2",
         "next": "15.5.12",
         "react": "19.0.0",
         "react-dom": "19.0.0",
@@ -29,6 +34,8 @@
         "zod": "3.25.67"
     },
     "devDependencies": {
+        "@types/jsonwebtoken": "9.0.10",
+        "@types/luxon": "3.7.1",
         "@types/node": "22.15.31",
         "@types/react": "19.0.14",
         "@types/react-dom": "19.0.6",

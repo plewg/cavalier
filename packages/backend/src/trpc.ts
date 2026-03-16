@@ -59,8 +59,7 @@ async function getSession(cookies: ReadonlyRequestCookies) {
         return null;
     }
 
-    // TODO: instead of an empty object, fetch a user/session based on the token (depends on how you implement auth, but could be as simple as `SELECT * FROM sessions WHERE token = ?`)
-    return await Promise.resolve({});
+    return await prisma.session.findUnique({ where: { token: token.value } });
 }
 
 /**
