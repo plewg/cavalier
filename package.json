@@ -25,7 +25,6 @@
     "devDependencies": {
         "@pentible/check-package-lock": "0.114.0",
         "@pentible/eslint-config": "0.114.0",
-        "@pentible/eslint-config-expo": "0.114.0",
         "@pentible/eslint-config-next": "0.114.0",
         "@pentible/eslint-config-node": "0.114.0",
         "@pentible/eslint-config-prettier": "0.114.0",

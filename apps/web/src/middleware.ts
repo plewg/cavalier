@@ -2,15 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { env } from "#src/env";
 
-const tauriAppUrl =
-    env.NODE_ENV === "production"
-        ? "tauri://localhost"
-        : "http://localhost:3001";
-
 const allowedOrigins = [
     env.APP_URL,
     env.VERCEL_URL !== undefined ? `https://${env.VERCEL_URL}` : undefined,
-    tauriAppUrl,
 ].filter((o) => o !== undefined);
 
 export const config = {
