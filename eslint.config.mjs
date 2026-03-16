@@ -1,5 +1,4 @@
 import { pentible, relativeIgnoreFile } from "@pentible/eslint-config";
-import { pentibleExpo } from "@pentible/eslint-config-expo";
 import { pentibleNext } from "@pentible/eslint-config-next";
 import { pentibleNode } from "@pentible/eslint-config-node";
 import { pentiblePrettier } from "@pentible/eslint-config-prettier";
@@ -29,11 +28,7 @@ const config = defineConfig([
     },
     {
         files: ["apps/mobile/**"],
-        extends: [
-            pentibleReact,
-            reactQuery.configs["flat/recommended"],
-            pentibleExpo,
-        ],
+        extends: [pentibleReact, reactQuery.configs["flat/recommended"]],
     },
     {
         files: ["packages/backend/**"],
