@@ -33,7 +33,7 @@ jobs:
             preview/pr-${{ github.event.number }}-${{ github.event.pull_request.head.ref }}
       - name: Run Migrations
         env:
-          DATABASE_URL: ${{ steps.branch.outputs.db_url }}
+          DATABASE_URL: ${{ steps.branch.outputs.db_url_pooled }}
         run: npx -w @repo/backend prisma migrate deploy
 
       # deploy
