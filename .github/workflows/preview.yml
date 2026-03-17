@@ -51,7 +51,7 @@ jobs:
           VERCEL_SCOPE: ${{ vars.VERCEL_SCOPE }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ github.event.repository.name }}
-          DATABASE_URL: ${{ steps.branch.outputs.db_url_with_pooler }}
+          DATABASE_URL: ${{ steps.branch.outputs.db_url_pooled }}
         run: |
           # branch url
           branch_url_safe="$(echo -n "$GITHUB_HEAD_REF" | tr -c '[:alnum:]' '-' | tr '[:upper:]' '[:lower:]')"
