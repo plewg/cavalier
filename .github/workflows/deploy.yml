@@ -13,9 +13,7 @@ jobs:
     environment:
       name: Production
       url: https://cavalier.vercel.app
-    # TODO: remove github.repository check, you don't need it (it's just here to prevent the template repo itself trying to deploy)
     if: >
-      github.repository != 'pentible/typescript-app-template' &&
       github.event.pull_request.merged
     runs-on: ubuntu-latest
     steps:

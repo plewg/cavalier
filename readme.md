@@ -63,9 +63,10 @@ trusted_config_paths = ["~/Projects"] # where ~/Projects is wherever you clone y
 
 ### Diff decrypted env values
 
-- add private key from <!-- TODO: replace name/link  -->
-  [your password manager](https://start.1password.com/open) into
-  `~/Library/Application Support/sops/age/keys.txt`
+- add private key from
+  [your password manager](https://start.1password.com/open/i?a=EWZXI436YZFG5GCL2RCHDAVIDM&v=cneefiowmi6ol5bftk56uzqree&i=plhmmz2a6pjlzufvx3efjri6by&h=my.1password.com)
+  into `~/Library/Application Support/sops/age/keys.txt` (macos) or
+  `~/.config/sops/age/keys.txt` (linux)
 
 - diff decrypted values
 
