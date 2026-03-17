@@ -17,15 +17,15 @@ jobs:
       github.event.pull_request.merged
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version-file: package.json
       - run: npm ci
 
       # decrypt env
       - name: Install sops
-        uses: mdgreenwald/mozilla-sops-action@v1.5.0
+        uses: mdgreenwald/mozilla-sops-action@v1.6.0
       - name: Decrypt environment variables
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
