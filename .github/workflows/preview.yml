@@ -12,8 +12,6 @@ jobs:
     environment:
       name: Preview
       url: ${{ steps.deploy.outputs.app_url }}
-    # TODO: remove, you don't need this (it's just here to prevent the template repo itself trying to deploy)
-    if: github.repository != 'pentible/typescript-app-template'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
