@@ -11,13 +11,9 @@ export async function GET() {
         return NextResponse.json("not ok", { status: 403 });
     }
 
-    const session = await prisma.session.findUnique({
+    const session = await prisma.session.findUniqueOrThrow({
         where: { token: token.value },
     });
-
-    if (session === null) {
-        throw new Error("Could not find a matching session");
-    }
 
     const client = createGoogleClient();
     await client.revokeToken(session.youtubeAccessToken);
