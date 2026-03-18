@@ -42,7 +42,7 @@ jobs:
 
       # update db
       - name: Run Migrations
-        run: npx -w @repo/backend prisma migrate deploy
+        run: npx -w @repo/web prisma migrate deploy
 
       # deploy
       - name: Install Vercel CLI

@@ -10,6 +10,9 @@ import { defineConfig } from "eslint/config";
 const config = defineConfig([
     relativeIgnoreFile(".gitignore", import.meta.url),
     {
+        ignores: ["apps/web/next-env.d.ts"],
+    },
+    {
         settings: {
             // NOTE: required because n plugin doesn't read the root package.json
             node: { version: "^22" },
@@ -17,7 +20,7 @@ const config = defineConfig([
     },
     pentible,
     {
-        files: ["apps/web/**", "apps/desktop/**"],
+        files: ["apps/web/**"],
         extends: [
             pentibleNode,
             pentibleWeb,
@@ -25,14 +28,6 @@ const config = defineConfig([
             reactQuery.configs["flat/recommended"],
             pentibleNext,
         ],
-    },
-    {
-        files: ["apps/mobile/**"],
-        extends: [pentibleReact, reactQuery.configs["flat/recommended"]],
-    },
-    {
-        files: ["packages/backend/**"],
-        extends: [pentibleNode],
     },
     pentiblePrettier,
 ]);

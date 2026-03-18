@@ -1,13 +1,14 @@
 import "server-only";
 
-import type { AppRouter } from "@repo/backend";
-import { appRouter, createTrpcContext } from "@repo/backend";
 import { createTRPCClient, loggerLink, TRPCClientError } from "@trpc/client";
 import { callTRPCProcedure } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import type { TRPCErrorResponse } from "@trpc/server/rpc";
 import { cookies as getCookies, headers as getHeaders } from "next/headers";
 import { cache } from "react";
+import { appRouter } from "#src/routers/root";
+import type { AppRouter } from "#src/routers/root";
+import { createTrpcContext } from "#src/trpc";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when

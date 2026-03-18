@@ -1,8 +1,9 @@
-import { appRouter, createTrpcContext } from "@repo/backend";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { env } from "#src/env";
+import { appRouter } from "#src/routers/root";
+import { createTrpcContext } from "#src/trpc";
 
 async function handler(req: NextRequest) {
     return await fetchRequestHandler({

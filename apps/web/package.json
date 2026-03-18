@@ -9,13 +9,15 @@
         "dev": "next dev --turbo",
         "lint:eslint": "eslint",
         "lint:prettier": "prettier --check --ignore-path ../../.gitignore .",
+        "lint:prisma": "prisma validate",
+        "prepare": "prisma generate --no-hints",
         "start": "next start",
         "typecheck": "tsc --noEmit"
     },
     "dependencies": {
         "@googleapis/youtube": "31.0.0",
         "@paralleldrive/cuid2": "2.2.2",
-        "@repo/backend": "*",
+        "@prisma/client": "6.10.1",
         "@t3-oss/env-nextjs": "0.13.8",
         "@tanstack/react-query": "5.80.7",
         "@tanstack/react-query-devtools": "5.80.7",
@@ -42,6 +44,7 @@
         "autoprefixer": "10.4.21",
         "babel-plugin-react-compiler": "19.0.0-beta-ebf51a3-20250411",
         "postcss": "8.4.31",
+        "prisma": "6.10.1",
         "tailwindcss": "3.4.17",
         "typescript-eslint": "8.34.1"
     },

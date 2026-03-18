@@ -10,9 +10,10 @@ export const env = createEnv({
     },
     server: {
         APP_URL: z.string().url(),
-        VERCEL_URL: z.string().optional(),
-        GOOGLE_OAUTH2_CLIENT_SECRET: z.string(),
+        DATABASE_URL: z.string().url(),
         GOOGLE_OAUTH2_CLIENT_ID: z.string(),
+        GOOGLE_OAUTH2_CLIENT_SECRET: z.string(),
+        VERCEL_URL: z.string().optional(),
     },
     // NOTE: client is for public env vars, available on the client and the server
     client: {
