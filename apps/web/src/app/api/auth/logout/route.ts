@@ -16,7 +16,10 @@ export async function GET() {
     });
 
     const client = createGoogleClient();
-    await client.revokeToken(session.youtubeAccessToken);
+    const res = await client.revokeToken(session.youtubeAccessToken);
+    if (!res.data.success) {
+        console.log("Failed to revoke access token", res);
+    }
 
     cookieStore.delete(appToken);
     await prisma.session.delete({
