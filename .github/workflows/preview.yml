@@ -34,7 +34,7 @@ jobs:
       - name: Run Migrations
         env:
           DATABASE_URL: ${{ steps.branch.outputs.db_url_pooled }}
-        run: npx -w @repo/backend prisma migrate deploy
+        run: npx -w @repo/web prisma migrate deploy
 
       # deploy
       - name: Install sops

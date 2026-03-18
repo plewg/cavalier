@@ -8,6 +8,4 @@ dist/
 /.env*.local
 /.vscode/settings.json
 /target/
-/apps/desktop/out/
-/apps/desktop/src-tauri/gen/schemas/
 /.husky/_/

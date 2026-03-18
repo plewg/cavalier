@@ -1,11 +1,12 @@
 import { createId } from "@paralleldrive/cuid2";
-import { prisma, appToken } from "@repo/backend";
 import { decode } from "jsonwebtoken";
 import { Duration } from "luxon";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { prisma } from "#src/db/prisma";
 import { env } from "#src/env";
+import { appToken } from "#src/trpc";
 import {
     idTokenSchema,
     tokensSchema,

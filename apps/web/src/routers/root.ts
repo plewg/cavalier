@@ -1,5 +1,5 @@
 import { authRouter } from "#src/routers/auth";
-import { createTrpcRouter } from "#src/trpc.js";
+import { createTrpcRouter } from "#src/trpc";
 
 /**
  * This is the primary router for your server.

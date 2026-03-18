@@ -1,7 +1,8 @@
-import { appToken, prisma } from "@repo/backend";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { prisma } from "#src/db/prisma";
 import { env } from "#src/env";
+import { appToken } from "#src/trpc";
 import { createGoogleClient } from "#src/youtube/google";
 
 export async function GET() {

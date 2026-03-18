@@ -98,9 +98,6 @@ dev::reset() {
 
     echo '==> install dependencies'
     npm install
-
-    echo '==> build packages'
-    turbo run build --filter='./packages/*'
 }
 
 dev::start() {
@@ -110,7 +107,7 @@ dev::start() {
     dev::db::up
 
     # push schema to db
-    npx -w @repo/backend prisma migrate deploy
+    npx -w @repo/web prisma migrate deploy
 
     # run seeds
     dev::db::seed
@@ -147,7 +144,7 @@ dev::db::up() {
 }
 
 dev::db::seed() {
-    node --experimental-strip-types ./packages/backend/src/db/seed.ts
+    node --experimental-strip-types ./apps/web/src/db/seed.ts
 }
 
 dev::db::local() {
@@ -167,7 +164,7 @@ dev::db::prod() {
 dev::db::migrate::local() {
     dev::db::up
 
-    npx -w @repo/backend prisma migrate dev
+    npx -w @repo/web prisma migrate dev
 }
 
 dev::sops() {
