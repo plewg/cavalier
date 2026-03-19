@@ -13,8 +13,6 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgresql://fake
     steps:
       - uses: actions/checkout@v6.0.2
       - name: Set up Node
