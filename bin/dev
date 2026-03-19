@@ -25,7 +25,6 @@ dev::usage() {
     echo '       dev start            # run dev server'
     echo '       dev lint             # run linters'
     echo '       dev lint fix         # fix auto-fixable linter errors'
-    echo '       dev db seed          # run seeds'
     echo '       dev db local         # connect to local database'
     echo '       dev db prod          # connect to production database'
     echo '       dev db migrate local # migrate local database'
@@ -109,9 +108,6 @@ dev::start() {
     # push schema to db
     npx -w @repo/web prisma migrate deploy
 
-    # run seeds
-    dev::db::seed
-
     # run dev
     turbo dev
 }
@@ -141,10 +137,6 @@ dev::db::up() {
         done
         echo >&2
     fi
-}
-
-dev::db::seed() {
-    node --experimental-strip-types ./apps/web/src/db/seed.ts
 }
 
 dev::db::local() {
@@ -192,7 +184,6 @@ case "$*" in
     start) dev::start ;;
     lint) dev::lint ;;
     'lint fix') dev::lint::fix ;;
-    'db seed') dev::db::seed ;;
     'db local') dev::db::local ;;
     'db prod') dev::db::prod ;;
     'db migrate local') dev::db::migrate::local ;;
