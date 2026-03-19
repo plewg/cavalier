@@ -12,7 +12,7 @@ jobs:
     name: Deploy
     environment:
       name: Production
-      url: https://cavalier.vercel.app
+      url: https://cavalier-beryl.vercel.app/
     if: >
       github.event.pull_request.merged
     runs-on: ubuntu-latest
