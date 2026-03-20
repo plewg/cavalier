@@ -46,9 +46,11 @@ model Subscription {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    channelId       String   @db.VarChar(24)
     lastRefreshedAt DateTime
     raw             Json
+
+    channel   Channel @relation(fields: [channelId], references: [id])
+    channelId String  @db.VarChar(24)
 
     user   User   @relation(fields: [userId], references: [id])
     userId String @db.VarChar(24)
@@ -69,8 +71,9 @@ model Channel {
     lastRefreshedAt DateTime
     raw             Json
 
-    videos   Video[]
-    playlist Playlist[]
+    videos        Video[]
+    playlist      Playlist[]
+    subscriptions Subscription[]
 
     @@index([createdAt])
     @@index([updatedAt])
