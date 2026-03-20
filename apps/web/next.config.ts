@@ -1,10 +1,11 @@
-/** @satisfies {import("next").NextConfig} */
-const config = {
+import { withWorkflow } from "workflow/next";
+
+const config = withWorkflow({
     reactStrictMode: true,
     reactCompiler: true,
 
     // linting is run separately in ci
     typescript: { ignoreBuildErrors: true },
-};
+});
 
 export default config;
