@@ -74,7 +74,7 @@ model Channel {
     uploadsPlaylistId String
 
     videos        Video[]
-    playlist      Playlist[]
+    playlists     Playlist[]
     subscriptions Subscription[]
 
     @@index([createdAt])
