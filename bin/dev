@@ -157,6 +157,7 @@ dev::db::migrate::local() {
     dev::db::up
 
     npx -w @repo/web prisma migrate dev
+    npx -w @repo/web prisma generate --no-hints
 }
 
 dev::sops() {
