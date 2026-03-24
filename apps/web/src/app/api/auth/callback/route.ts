@@ -4,6 +4,7 @@ import { Duration } from "luxon";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { start } from "workflow/api";
 import { prisma } from "#src/db/prisma";
 import { env } from "#src/env";
 import { appToken } from "#src/trpc";
@@ -12,6 +13,7 @@ import {
     tokensSchema,
     createGoogleClient,
 } from "#src/youtube/google";
+import { refreshUserSubscriptions } from "workflows/refresh-user-subscriptions";
 
 export async function GET(req: NextRequest) {
     const code = req.nextUrl.searchParams.get("code");
@@ -34,7 +36,11 @@ export async function GET(req: NextRequest) {
     const parsedIdToken = idTokenSchema.parse(decodedIdToken);
     const sessionToken = createId();
 
-    await prisma.session.create({
+    const user = await prisma.user.findUnique({
+        where: { googleId: parsedIdToken.sub },
+    });
+
+    const { userId } = await prisma.session.create({
         data: {
             id: createId(),
             token: sessionToken,
@@ -51,6 +57,10 @@ export async function GET(req: NextRequest) {
             },
         },
     });
+
+    if (user == null) {
+        await start(refreshUserSubscriptions, [userId]);
+    }
 
     const cookieStore = await cookies();
     cookieStore.set(appToken, sessionToken, {
