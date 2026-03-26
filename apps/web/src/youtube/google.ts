@@ -11,6 +11,7 @@ export const tokensSchema = z.object({
 
 export function createGoogleClient() {
     return new OAuth2Client({
+        apiKey: env.GOOGLE_API_KEY,
         clientId: env.GOOGLE_OAUTH2_CLIENT_ID,
         clientSecret: env.GOOGLE_OAUTH2_CLIENT_SECRET,
         redirectUri: `${env.APP_URL}/api/auth/callback`,
