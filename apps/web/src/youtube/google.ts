@@ -2,6 +2,8 @@ import { OAuth2Client } from "google-auth-library";
 import { z } from "zod";
 import { env } from "#src/env";
 
+export const PAGE_SIZE = 50;
+
 export const idTokenSchema = z.object({ sub: z.string() });
 export const tokensSchema = z.object({
     access_token: z.string(),
