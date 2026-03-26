@@ -13,6 +13,7 @@ export const env = createEnv({
         DATABASE_URL: z.string().url(),
         GOOGLE_OAUTH2_CLIENT_ID: z.string(),
         GOOGLE_OAUTH2_CLIENT_SECRET: z.string(),
+        GOOGLE_API_KEY: z.string(),
         VERCEL_URL: z.string().optional(),
     },
     // NOTE: client is for public env vars, available on the client and the server
