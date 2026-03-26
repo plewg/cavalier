@@ -2,6 +2,8 @@
 import { youtube } from "@googleapis/youtube";
 import type { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
+import { start } from "workflow/api";
+import { refreshChannelUploads } from "./refresh-channel-uploads";
 import { prisma } from "#src/db/prisma";
 import { chunk } from "#src/utils/array";
 import { UnreachableError } from "#src/utils/errors";
@@ -142,6 +144,7 @@ export async function refreshSubscriptions(userId: string) {
                 data: { lastRefreshedAt: DateTime.now().toJSDate() },
             });
         });
+        await start(refreshChannelUploads, []);
         return user;
     } catch (error: unknown) {
         console.log("Something went wrong", error);
