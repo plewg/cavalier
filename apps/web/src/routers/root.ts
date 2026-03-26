@@ -1,5 +1,6 @@
 import { adminRouter } from "./admin";
 import { authRouter } from "#src/routers/auth";
+import { videoRouter } from "#src/routers/video";
 import { createTrpcRouter } from "#src/trpc";
 
 /**
@@ -10,6 +11,7 @@ import { createTrpcRouter } from "#src/trpc";
 export const appRouter = createTrpcRouter({
     auth: authRouter,
     admin: adminRouter,
+    video: videoRouter,
 });
 
 // export type definition of API
