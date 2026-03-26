@@ -28,6 +28,8 @@ dev::usage() {
     echo '       dev db local         # connect to local database'
     echo '       dev db prod          # connect to production database'
     echo '       dev db migrate local # migrate local database'
+    echo '       dev db dump local    # dump local database'
+    echo '       dev db restore local # restore local database'
     echo '       dev env edit dev     # edit encrypted local development env vars'
     echo '       dev env edit preview # edit encrypted preview env vars'
     echo '       dev env edit prod    # edit encrypted production env vars'
@@ -105,8 +107,7 @@ dev::start() {
     # start db
     dev::db::up
 
-    # push schema to db
-    npx -w @repo/web prisma migrate deploy
+    dev::db::restore::local
 
     # run dev
     turbo dev
@@ -136,6 +137,9 @@ dev::db::up() {
             sleep 1
         done
         echo >&2
+
+        # push schema to db
+        npx -w @repo/web prisma migrate deploy
     fi
 }
 
@@ -143,6 +147,20 @@ dev::db::local() {
     dev::db::up
 
     psql "$DATABASE_URL"
+}
+
+dev::db::dump::local() {
+    dev::db::up
+
+    pg_dump "$DATABASE_URL" --data-only --file=db_dump_local.sql.gz --format=plain --no-owner --exclude-table=_prisma_migrations --compress=gzip
+}
+
+dev::db::restore::local() {
+    dev::db::up
+
+    gunzip --keep --force db_dump_local.sql.gz
+    echo "Restoring DB"
+    psql "$DATABASE_URL" < db_dump_local.sql > /dev/null 2>&1
 }
 
 dev::db::prod() {
@@ -189,6 +207,8 @@ case "$*" in
     'db prod') dev::db::prod ;;
     'db migrate local') dev::db::migrate::local ;;
     'db migrate prod') dev::db::migrate::prod ;;
+    'db dump local') dev::db::dump::local ;;
+    'db restore local') dev::db::restore::local ;;
     'env edit dev'*) dev::env::edit::dev "${@:4}" ;;
     'env edit preview'*) dev::env::edit::preview "${@:4}" ;;
     'env edit prod'*) dev::env::edit::prod "${@:4}" ;;
