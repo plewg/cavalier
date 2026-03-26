@@ -22,21 +22,11 @@ export async function refreshSubscriptions(userId: string) {
     "use step";
 
     try {
-        const user = await prisma.user.findUniqueOrThrow({
-            include: {
-                sessions: {
-                    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
-                    take: 1,
-                },
-            },
-            where: { id: userId },
+        const session = await prisma.session.findFirstOrThrow({
+            include: { user: true },
+            where: { userId },
+            orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
         });
-
-        const [session] = user.sessions;
-
-        if (session === undefined) {
-            throw new Error("No credentials for user.");
-        }
 
         const youtubeApi = youtube("v3");
         const client = createGoogleClient();
@@ -91,7 +81,6 @@ export async function refreshSubscriptions(userId: string) {
 
         await prisma.$transaction(async (tx) => {
             const now = DateTime.now().toJSDate();
-            await tx.subscription.deleteMany({ where: { userId } });
 
             for (const channel of channels) {
                 if (
@@ -108,7 +97,8 @@ export async function refreshSubscriptions(userId: string) {
                         id: channel.id,
                         lastRefreshedAt: now,
                         name: channel.snippet.title,
-                        raw: JSON.stringify(channel),
+                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                        raw: channel as Prisma.JsonObject,
                         handle: channel.snippet.customUrl,
                         uploadsPlaylistId:
                             channel.contentDetails.relatedPlaylists.uploads,
@@ -116,12 +106,14 @@ export async function refreshSubscriptions(userId: string) {
                     update: {
                         lastRefreshedAt: now,
                         name: channel.snippet.title,
-                        raw: JSON.stringify(channel),
+                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                        raw: channel as Prisma.JsonObject,
                         handle: channel.snippet.customUrl,
                     },
                 });
             }
 
+            await tx.subscription.deleteMany({ where: { userId } });
             await tx.subscription.createMany({
                 data: subscriptions.map((subscription) => {
                     const channelId =
@@ -134,18 +126,19 @@ export async function refreshSubscriptions(userId: string) {
                         channelId,
                         id: subscription.id,
                         userId,
-                        raw: JSON.stringify(subscription),
+                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                        raw: subscription as Prisma.JsonObject,
                     } satisfies Prisma.SubscriptionCreateManyInput;
                 }),
             });
 
             await tx.user.update({
                 where: { id: userId },
-                data: { lastRefreshedAt: DateTime.now().toJSDate() },
+                data: { lastRefreshedAt: now },
             });
         });
         await start(refreshChannelUploads, []);
-        return user;
+        return session.user;
     } catch (error: unknown) {
         console.log("Something went wrong", error);
         throw error;
