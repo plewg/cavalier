@@ -11,3 +11,5 @@ dist/
 /.husky/_/
 .swc/
 .well-known/
+db_dump_local.sql
+db_dump_local.sql.gz
