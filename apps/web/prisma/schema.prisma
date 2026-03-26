@@ -83,23 +83,23 @@ model Channel {
 }
 
 enum LiveBroadcastContent {
-    LIVE
-    NONE
-    UPCOMING
+    live
+    none
+    upcoming
 }
 
 enum UploadStatus {
-    DELETED
-    FAILED
-    PROCESSED
-    REJECTED
-    UPLOADED
+    deleted
+    failed
+    processed
+    rejected
+    uploaded
 }
 
 enum PrivacyStatus {
-    PRIVATE
-    PUBLIC
-    UNLISTED
+    private
+    public
+    unlisted
 }
 
 model Video {
