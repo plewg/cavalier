@@ -17,8 +17,15 @@ export async function GET() {
     });
 
     const client = createGoogleClient();
-    const res = await client.revokeToken(session.youtubeAccessToken);
-    if (!res.data.success) {
+    client.setCredentials({
+        access_token: session.youtubeAccessToken,
+        refresh_token: session.youtubeRefreshToken,
+    });
+
+    await client.refreshAccessToken();
+
+    const res = await client.revokeCredentials();
+    if (!res.ok) {
         console.log("Failed to revoke access token", res);
     }
 
