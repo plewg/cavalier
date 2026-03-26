@@ -1,3 +1,8 @@
+import {
+    LiveBroadcastContent,
+    PrivacyStatus,
+    UploadStatus,
+} from "@prisma/client";
 import { OAuth2Client } from "google-auth-library";
 import { z } from "zod";
 import { env } from "#src/env";
@@ -9,6 +14,25 @@ export const tokensSchema = z.object({
     access_token: z.string(),
     refresh_token: z.string(),
     id_token: z.string(),
+});
+export const videoSchema = z.object({
+    contentDetails: z.object({
+        duration: z.string(),
+    }),
+    id: z.string(),
+    snippet: z.object({
+        channelId: z.string(),
+        liveBroadcastContent: z.nativeEnum(LiveBroadcastContent),
+        publishedAt: z.string(),
+        thumbnails: z.object({
+            default: z.object({ url: z.string() }),
+        }),
+        title: z.string(),
+    }),
+    status: z.object({
+        privacyStatus: z.nativeEnum(PrivacyStatus),
+        uploadStatus: z.nativeEnum(UploadStatus),
+    }),
 });
 
 export function createGoogleClient() {
