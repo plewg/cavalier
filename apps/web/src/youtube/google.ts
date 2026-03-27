@@ -3,8 +3,10 @@ import {
     PrivacyStatus,
     UploadStatus,
 } from "@prisma/client";
+import type { Session } from "@prisma/client";
 import { OAuth2Client } from "google-auth-library";
 import { z } from "zod";
+import { prisma } from "#src/db/prisma";
 import { env } from "#src/env";
 
 export const PAGE_SIZE = 50;
@@ -42,4 +44,25 @@ export function createGoogleClient() {
         clientSecret: env.GOOGLE_OAUTH2_CLIENT_SECRET,
         redirectUri: `${env.APP_URL}/api/auth/callback`,
     });
+}
+
+export function createGoogleClientForSession(session: Session) {
+    const client = createGoogleClient();
+
+    client.setCredentials({
+        access_token: session.youtubeAccessToken,
+        refresh_token: session.youtubeRefreshToken,
+    });
+
+    client.on("tokens", (tokens) => {
+        void prisma.session.update({
+            where: { token: session.token },
+            data: {
+                youtubeAccessToken: tokens.access_token ?? undefined,
+                youtubeRefreshToken: tokens.refresh_token ?? undefined,
+            },
+        });
+    });
+
+    return client;
 }
