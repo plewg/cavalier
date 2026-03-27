@@ -1,12 +1,12 @@
 import "#src/styles/globals.css";
 import type { Metadata } from "next";
-import { Quicksand } from "next/font/google";
+import { Atkinson_Hyperlegible_Next } from "next/font/google";
 import type { ReactNode } from "react";
 import { TrpcProvider } from "#src/trpc/react";
 
-const quicksand = Quicksand({
+const atkinson = Atkinson_Hyperlegible_Next({
     subsets: ["latin"],
-    variable: "--font-quicksand",
+    variable: "--font-atkinson",
     display: "swap",
 });
 
@@ -21,9 +21,9 @@ interface Props {
 
 export default function Layout({ children }: Props) {
     return (
-        <html className="h-full" lang="en">
+        <html className="h-full w-full" lang="en">
             <body
-                className={`${quicksand.variable} h-full bg-indigo-900 font-sans text-indigo-50`}
+                className={`${atkinson.variable} h-full bg-gray-900 font-sans text-indigo-50`}
             >
                 <TrpcProvider>{children}</TrpcProvider>
             </body>
