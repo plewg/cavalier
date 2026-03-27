@@ -25,7 +25,7 @@ export const videoSchema = z.object({
         liveBroadcastContent: z.nativeEnum(LiveBroadcastContent),
         publishedAt: z.string(),
         thumbnails: z.object({
-            default: z.object({ url: z.string() }),
+            high: z.object({ url: z.string() }),
         }),
         title: z.string(),
     }),
