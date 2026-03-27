@@ -15,6 +15,7 @@ export const env = createEnv({
         GOOGLE_OAUTH2_CLIENT_SECRET: z.string(),
         GOOGLE_API_KEY: z.string(),
         VERCEL_URL: z.string().optional(),
+        DEPLOYMENT_ENVIRONMENT: z.string(),
     },
     // NOTE: client is for public env vars, available on the client and the server
     client: {
