@@ -6,6 +6,7 @@ import {
     useQuery,
     useQueryClient,
 } from "@tanstack/react-query";
+import { useState } from "react";
 import type { RouterOutputs } from "#src/routers/root";
 import { useTrpc } from "#src/trpc/react";
 import { UnreachableError } from "#src/utils/errors";
@@ -72,10 +73,14 @@ export default function Home() {
 function VideoScreen() {
     const api = useTrpc();
 
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
     const videoQueryKey = api.video.feed.infiniteQueryKey({});
     const queryClient = useQueryClient();
     const videoQueryOptions = api.video.feed.infiniteQueryOptions(
-        {},
+        {
+            sortDirection,
+        },
         {
             getNextPageParam: (lastPage) => ({
                 id: lastPage.nextCursor,
@@ -117,7 +122,18 @@ function VideoScreen() {
     }
 
     return (
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center gap-3">
+            <button
+                type="button"
+                onClick={() => {
+                    setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+                }}
+                className="flex w-48 justify-center self-end rounded-md border-2 border-gray-600 p-3 text-center"
+            >
+                {sortDirection === "asc"
+                    ? "Sort Oldest First"
+                    : "Sort Newest First"}
+            </button>
             <div className="xs:grid-cols-3 grid max-w-7xl grid-cols-1 gap-3 gap-y-8 lg:grid-cols-4">
                 {data.pages.map(({ videos }) => {
                     return videos.map((video) => {
