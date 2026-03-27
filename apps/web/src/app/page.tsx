@@ -74,7 +74,6 @@ function VideoScreen() {
 
     const videoQueryKey = api.video.feed.infiniteQueryKey({});
     const queryClient = useQueryClient();
-    console.log(videoQueryKey);
     const videoQueryOptions = api.video.feed.infiniteQueryOptions(
         {},
         {
