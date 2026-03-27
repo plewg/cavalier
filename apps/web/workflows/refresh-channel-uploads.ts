@@ -152,10 +152,10 @@ export async function refresh() {
                                     publishedAt: DateTime.fromISO(
                                         parsedVideo.snippet.publishedAt,
                                     ).toJSDate(),
-                                    raw: JSON.stringify(video),
+                                    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                                    raw: video as Prisma.JsonObject,
                                     thumbnailUrl:
-                                        parsedVideo.snippet.thumbnails.default
-                                            .url,
+                                        parsedVideo.snippet.thumbnails.high.url,
                                     title: parsedVideo.snippet.title,
                                     uploadStatus:
                                         parsedVideo.status.uploadStatus,
