@@ -86,9 +86,12 @@ export async function refreshSubscriptions(userId: string) {
                 if (
                     channel.id == null ||
                     channel.snippet?.title == null ||
-                    channel.contentDetails?.relatedPlaylists?.uploads == null
+                    channel.contentDetails?.relatedPlaylists?.uploads == null ||
+                    channel.snippet.thumbnails?.default?.url == null
                 ) {
-                    throw new UnreachableError("channelId is required");
+                    throw new UnreachableError(
+                        "required properties are missing",
+                    );
                 }
 
                 await tx.channel.upsert({
@@ -102,6 +105,8 @@ export async function refreshSubscriptions(userId: string) {
                         handle: channel.snippet.customUrl,
                         uploadsPlaylistId:
                             channel.contentDetails.relatedPlaylists.uploads,
+                        profilePictureUrl:
+                            channel.snippet.thumbnails.default.url,
                     },
                     update: {
                         lastRefreshedAt: now,
