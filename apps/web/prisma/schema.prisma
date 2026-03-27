@@ -73,6 +73,7 @@ model Channel {
     uploadsRefreshedAt DateTime?
     raw                Json
     uploadsPlaylistId  String
+    profilePictureUrl  String
 
     videos        Video[]
     playlists     Playlist[]
