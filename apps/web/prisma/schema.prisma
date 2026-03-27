@@ -15,7 +15,8 @@ model User {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    lastRefreshedAt DateTime?
+    lastRefreshedAt      DateTime?
+    watchLaterPlaylistId String?   @db.VarChar(34)
 
     sessions      Session[]
     subscriptions Subscription[]
