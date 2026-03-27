@@ -28,6 +28,10 @@ const config = defineConfig([
             reactQuery.configs["flat/recommended"],
             pentibleNext,
         ],
+        rules: {
+            "jsx-a11y/alt-text": "off",
+            "@next/next/no-img-element": "off",
+        },
     },
     pentiblePrettier,
 ]);
