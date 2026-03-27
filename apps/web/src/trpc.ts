@@ -59,7 +59,10 @@ async function getSession(cookies: ReadonlyRequestCookies) {
         return null;
     }
 
-    return await prisma.session.findUnique({ where: { token: token.value } });
+    return await prisma.session.findUnique({
+        include: { user: true },
+        where: { token: token.value },
+    });
 }
 
 /**
