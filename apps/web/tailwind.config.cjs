@@ -4,7 +4,7 @@ module.exports = {
     theme: {
         extend: {
             fontFamily: {
-                sans: ["var(--font-quicksand)"],
+                sans: ["var(--font-atkinson)"],
                 // mono: ["var(--font-inconsolata)"],
             },
         },
