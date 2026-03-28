@@ -121,10 +121,10 @@ model Video {
     lastRefreshedAt      DateTime
     raw                  Json
 
-    channel          Channel        @relation(fields: [channelId], references: [id])
-    channelId        String         @db.VarChar(24)
-    unusedUserVideos UserVideo[]
-    playlistItem     PlaylistItem[]
+    channel      Channel        @relation(fields: [channelId], references: [id])
+    channelId    String         @db.VarChar(24)
+    userVideos   UserVideo[]
+    playlistItem PlaylistItem[]
 
     @@index([channelId])
     @@index([createdAt])
