@@ -31,6 +31,7 @@ dev::usage() {
     echo '       dev db migrate local # migrate local database'
     echo '       dev db dump local    # dump local database'
     echo '       dev db restore local # restore local database'
+    echo '       dev db restore prod  # restore prod database'
     echo '       dev env edit dev     # edit encrypted local development env vars'
     echo '       dev env edit preview # edit encrypted preview env vars'
     echo '       dev env edit prod    # edit encrypted production env vars'
@@ -164,6 +165,12 @@ dev::db::restore::local() {
     psql "$DATABASE_URL" < db_dump_local.sql > /dev/null 2>&1
 }
 
+dev::db::restore::prod() {
+    gunzip --keep --force db_dump_local.sql.gz
+    echo "Restoring DB to prod"
+    psql "$(neonctl connection-string 'production' --database-name 'cavalier')" < db_dump_local.sql
+}
+
 dev::db::preview() {
     if ! neonctl me > /dev/null 2>&1; then
         neonctl auth
@@ -219,6 +226,7 @@ case "$*" in
     'db migrate prod') dev::db::migrate::prod ;;
     'db dump local') dev::db::dump::local ;;
     'db restore local') dev::db::restore::local ;;
+    'db restore prod'*) dev::db::restore::prod ;;
     'env edit dev'*) dev::env::edit::dev "${@:4}" ;;
     'env edit preview'*) dev::env::edit::preview "${@:4}" ;;
     'env edit prod'*) dev::env::edit::prod "${@:4}" ;;
