@@ -13,7 +13,7 @@ import { UnreachableError } from "#src/utils/errors";
 
 export default function Home() {
     const api = useTrpc();
-    const { data: user, isLoading } = useQuery(
+    const { data: session, isLoading } = useQuery(
         api.auth.getSession.queryOptions(),
     );
     const { mutate: refreshUserSubscriptions } = useMutation(
@@ -23,7 +23,7 @@ export default function Home() {
         api.admin.refreshChannelUploads.mutationOptions(),
     );
 
-    if (isLoading || user === undefined) {
+    if (isLoading || session === undefined) {
         return <div>Loading</div>;
     }
 
@@ -33,7 +33,7 @@ export default function Home() {
                 <div className="self-start bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-center text-4xl font-extrabold text-transparent">
                     CAVALIER
                 </div>
-                {user === null ? (
+                {session === null ? (
                     <a
                         className="flex items-center rounded-md bg-green-700 px-2"
                         href="/api/auth/login"
@@ -65,7 +65,7 @@ export default function Home() {
                     </div>
                 )}
             </div>
-            {user !== null ? <VideoScreen /> : undefined}
+            {session !== null ? <VideoScreen /> : undefined}
         </main>
     );
 }
