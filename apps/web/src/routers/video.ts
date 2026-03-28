@@ -16,7 +16,10 @@ export const videoRouter = createTrpcRouter({
             z
                 .object({
                     cursor: z.object({ id: z.string() }).optional(),
-                    sortDirection: z.enum(["asc", "desc"]),
+                    sortDirection: z
+                        .enum(["asc", "desc"])
+                        .optional()
+                        .default("asc"),
                 })
                 .optional()
                 .default({ cursor: undefined, sortDirection: "asc" }),

@@ -76,7 +76,7 @@ function VideoScreen() {
     const api = useTrpc();
     const queryClient = useQueryClient();
 
-    const videoQueryKey = api.video.feed.infiniteQueryKey({});
+    const videoQueryKey = api.video.feed.infiniteQueryKey({ sortDirection });
     const videoQueryOptions = api.video.feed.infiniteQueryOptions(
         {
             sortDirection,
