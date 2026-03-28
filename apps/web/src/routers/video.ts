@@ -44,7 +44,7 @@ export const videoRouter = createTrpcRouter({
                     channel: {
                         subscriptions: { some: { userId: ctx.session.userId } },
                     },
-                    unusedUserVideos: {
+                    userVideos: {
                         none: { userId: ctx.session.userId },
                     },
                 },
