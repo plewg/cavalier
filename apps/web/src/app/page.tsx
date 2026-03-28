@@ -29,8 +29,8 @@ export default function Home() {
 
     return (
         <main className="flex h-full w-full flex-col items-center justify-start gap-10 p-4">
-            <div className="flex h-10 w-full flex-row justify-between">
-                <div className="self-start bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-center text-4xl font-extrabold text-transparent">
+            <div className="flex w-full flex-col justify-between md:flex-row">
+                <div className="self-center bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-center text-4xl font-extrabold text-transparent md:self-start">
                     CAVALIER
                 </div>
                 {session === null ? (
@@ -41,7 +41,7 @@ export default function Home() {
                         Log In
                     </a>
                 ) : (
-                    <div className="flex h-10 flex-row justify-end gap-2">
+                    <div className="flex flex-col items-center gap-2 md:flex-row md:justify-end">
                         <button
                             type="button"
                             className="flex w-48 items-center justify-center rounded-md border-2 border-gray-600 bg-gray-700 p-3"
@@ -57,7 +57,7 @@ export default function Home() {
                             Refresh Uploads
                         </button>
                         <a
-                            className="flex items-center rounded-md bg-green-700 px-2"
+                            className="flex w-48 items-center justify-center rounded-md border-2 border-green-600 bg-green-700 p-3 px-2"
                             href="/api/auth/logout"
                         >
                             Log Out
@@ -128,7 +128,7 @@ function VideoScreen() {
                 onClick={() => {
                     setSortDirection(sortDirection === "asc" ? "desc" : "asc");
                 }}
-                className="flex w-48 justify-center self-end rounded-md border-2 border-gray-600 p-3 text-center"
+                className="flex w-48 justify-center self-center rounded-md border-2 border-gray-600 p-3 text-center md:self-end"
             >
                 {sortDirection === "asc"
                     ? "Sort Oldest First"
@@ -172,7 +172,7 @@ function VideoTile({ video, onClick }: VideoTileProps) {
     const channelUrl = `https://youtube.com/channel/${video.channel.handle ?? video.channel.id}`;
 
     return (
-        <div key={video.id} className="flex flex-col gap-2">
+        <div key={video.id} className="flex max-w-[480] flex-col gap-2">
             <div className="relative flex">
                 <div className="absolute flex h-full w-full flex-row opacity-0 hover:opacity-30">
                     <button
