@@ -163,13 +163,12 @@ function VideoScreen() {
 
 type Video = RouterOutputs["video"]["feed"]["videos"][number];
 
-function VideoTile({
-    video,
-    onClick,
-}: {
+interface VideoTileProps {
     video: Video;
     onClick: (video: Video, save: boolean) => void;
-}) {
+}
+
+function VideoTile({ video, onClick }: VideoTileProps) {
     const channelUrl = `https://youtube.com/channel/${video.channel.handle ?? video.channel.id}`;
 
     return (
