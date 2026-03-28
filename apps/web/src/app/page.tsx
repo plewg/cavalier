@@ -71,12 +71,12 @@ export default function Home() {
 }
 
 function VideoScreen() {
-    const api = useTrpc();
-
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-    const videoQueryKey = api.video.feed.infiniteQueryKey({});
+    const api = useTrpc();
     const queryClient = useQueryClient();
+
+    const videoQueryKey = api.video.feed.infiniteQueryKey({});
     const videoQueryOptions = api.video.feed.infiniteQueryOptions(
         {
             sortDirection,
