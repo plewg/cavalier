@@ -165,7 +165,7 @@ function VideoScreen() {
                     type="button"
                     disabled={isFetching}
                     onClick={() => void fetchNextPage()}
-                    className="aspect-video w-[480] rounded-md bg-gray-600 p-3 lg:w-[240]"
+                    className="aspect-video w-full max-w-[480] rounded-md bg-gray-600 p-3 lg:w-[240]"
                 >
                     Load More
                 </button>
@@ -190,7 +190,10 @@ function VideoTile({ video, onClick }: VideoTileProps) {
             : videoDuration.toFormat("m:ss");
 
     return (
-        <div key={video.id} className="flex w-[480] flex-col gap-2 lg:w-[240]">
+        <div
+            key={video.id}
+            className="flex w-full max-w-[480] flex-col gap-2 lg:w-[240]"
+        >
             <div className="relative flex">
                 {Boolean(duration) && (
                     <div className="absolute bottom-1 right-1 rounded bg-black px-1 text-sm">
