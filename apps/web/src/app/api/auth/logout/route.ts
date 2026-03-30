@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "#src/db/prisma";
 import { env } from "#src/env";
 import { appToken } from "#src/trpc";
+import { isErrorWithCode } from "#src/utils/errors";
 import { createGoogleClient } from "#src/youtube/google";
 
 export async function GET() {
@@ -22,11 +23,24 @@ export async function GET() {
         refresh_token: session.youtubeRefreshToken,
     });
 
-    await client.refreshAccessToken();
+    try {
+        const res = await client.revokeCredentials();
+        if (!res.ok) {
+            console.log("Failed to revoke access token", res);
+        }
+    } catch (error: unknown) {
+        console.error(
+            "Exception while revoking credentials",
+            JSON.stringify(error),
+        );
 
-    const res = await client.revokeCredentials();
-    if (!res.ok) {
-        console.log("Failed to revoke access token", res);
+        if (
+            isErrorWithCode(error) &&
+            typeof error.code == "number" &&
+            error.code >= 500
+        ) {
+            throw error;
+        }
     }
 
     cookieStore.delete(appToken);
