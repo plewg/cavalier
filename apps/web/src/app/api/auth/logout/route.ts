@@ -29,11 +29,6 @@ export async function GET() {
             console.log("Failed to revoke access token", res);
         }
     } catch (error: unknown) {
-        console.error(
-            "Exception while revoking credentials",
-            JSON.stringify(error),
-        );
-
         if (
             isErrorWithCode(error) &&
             typeof error.code == "number" &&
