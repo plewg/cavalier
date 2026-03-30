@@ -48,6 +48,8 @@ export default function Home() {
                             <a
                                 className="flex flex-row items-center gap-1"
                                 href={`https://youtube.com/playlist?list=${session.user.watchLaterPlaylistId}`}
+                                target="_blank"
+                                rel="noreferrer"
                             >
                                 View Playlist
                                 <FiExternalLink />
