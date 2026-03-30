@@ -7,6 +7,7 @@ import {
     useQueryClient,
 } from "@tanstack/react-query";
 import { useState } from "react";
+import { FiExternalLink } from "react-icons/fi";
 import type { RouterOutputs } from "#src/routers/root";
 import { useTrpc } from "#src/trpc/react";
 import { UnreachableError } from "#src/utils/errors";
@@ -42,6 +43,15 @@ export default function Home() {
                     </a>
                 ) : (
                     <div className="flex flex-col items-center gap-2 md:flex-row md:justify-end">
+                        {session.user.watchLaterPlaylistId !== null ? (
+                            <a
+                                className="flex flex-row items-center gap-1"
+                                href={`https://youtube.com/playlist?list=${session.user.watchLaterPlaylistId}`}
+                            >
+                                View Playlist
+                                <FiExternalLink />
+                            </a>
+                        ) : undefined}
                         <button
                             type="button"
                             className="flex w-48 items-center justify-center rounded-md border-2 border-gray-600 bg-gray-700 p-3"
