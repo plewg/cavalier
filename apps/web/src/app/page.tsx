@@ -18,12 +18,6 @@ export default function Home() {
     const { data: session, isLoading } = useQuery(
         api.auth.getSession.queryOptions(),
     );
-    const { mutate: refreshUserSubscriptions } = useMutation(
-        api.admin.refreshUserSubscriptions.mutationOptions(),
-    );
-    const { mutate: refreshChannelUploads } = useMutation(
-        api.admin.refreshChannelUploads.mutationOptions(),
-    );
 
     if (isLoading || session === undefined) {
         return <div>Loading</div>;
@@ -55,20 +49,6 @@ export default function Home() {
                                 <FiExternalLink />
                             </a>
                         ) : undefined}
-                        <button
-                            type="button"
-                            className="flex w-48 items-center justify-center rounded-md border-2 border-gray-600 bg-gray-700 p-3"
-                            onClick={() => refreshUserSubscriptions()}
-                        >
-                            Refresh Subscriptions
-                        </button>
-                        <button
-                            type="button"
-                            className="flex w-48 items-center justify-center rounded-md border-2 border-gray-600 bg-gray-700 p-3"
-                            onClick={() => refreshChannelUploads()}
-                        >
-                            Refresh Uploads
-                        </button>
                         <a
                             className="flex w-48 items-center justify-center rounded-md border-2 border-green-600 bg-green-700 px-2 py-3"
                             href="/api/auth/logout"
