@@ -138,13 +138,13 @@ function VideoScreen() {
                 onClick={() => {
                     setSortDirection(sortDirection === "asc" ? "desc" : "asc");
                 }}
-                className="flex w-48 justify-center self-center rounded-md border-2 border-gray-600 p-3 text-center md:self-end"
+                className="flex w-48 justify-center self-center rounded-md border-2 border-gray-600 p-3 text-center lg:self-end"
             >
                 {sortDirection === "asc"
                     ? "Sort Oldest First"
                     : "Sort Newest First"}
             </button>
-            <div className="xs:grid-cols-3 grid max-w-7xl grid-cols-1 gap-3 gap-y-8 lg:grid-cols-4">
+            <div className="grid max-w-7xl grid-cols-1 gap-3 gap-y-8 pb-[100vh] lg:grid-cols-4 xl:grid-cols-5">
                 {data.pages.map(({ videos }) => {
                     return videos.map((video) => {
                         return (
@@ -158,15 +158,15 @@ function VideoScreen() {
                         );
                     });
                 })}
+                <button
+                    type="button"
+                    disabled={isFetching}
+                    onClick={() => void fetchNextPage()}
+                    className="aspect-video w-[480] rounded-md bg-gray-600 p-3 lg:w-[240]"
+                >
+                    Load More
+                </button>
             </div>
-            <button
-                type="button"
-                disabled={isFetching}
-                onClick={() => void fetchNextPage()}
-                className="flex w-48 justify-center rounded-md border-2 border-gray-600 p-3 text-center"
-            >
-                Load More
-            </button>
         </div>
     );
 }
@@ -182,7 +182,7 @@ function VideoTile({ video, onClick }: VideoTileProps) {
     const channelUrl = `https://youtube.com/channel/${video.channel.handle ?? video.channel.id}`;
 
     return (
-        <div key={video.id} className="flex max-w-[480] flex-col gap-2">
+        <div key={video.id} className="flex w-[480] flex-col gap-2 lg:w-[240]">
             <div className="relative flex">
                 <div className="absolute flex h-full w-full flex-row opacity-0 hover:opacity-30">
                     <button
@@ -190,7 +190,7 @@ function VideoTile({ video, onClick }: VideoTileProps) {
                         onClick={() => {
                             onClick(video, false);
                         }}
-                        className="flex-grow bg-red-800 text-red-800"
+                        className="flex-grow rounded-l-md bg-red-800 text-red-800"
                     >
                         rip bozo
                     </button>
@@ -199,14 +199,14 @@ function VideoTile({ video, onClick }: VideoTileProps) {
                         onClick={() => {
                             onClick(video, true);
                         }}
-                        className="flex-grow bg-green-800 text-green-800"
+                        className="flex-grow rounded-r-md bg-green-800 text-green-800"
                     >
                         yep sir
                     </button>
                 </div>
 
                 <img
-                    className="aspect-video object-cover"
+                    className="aspect-video w-full rounded-md object-cover"
                     src={video.thumbnailUrl}
                 />
             </div>
