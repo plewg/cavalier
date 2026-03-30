@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { DateTime, Duration } from "luxon";
 import { prisma } from "#src/db/prisma";
 import { asyncForEach, chunk } from "#src/utils/array";
-import { UnreachableError } from "#src/utils/errors";
+import { isErrorWithCode, UnreachableError } from "#src/utils/errors";
 import { thePaginator } from "#src/utils/pagination";
 import {
     createGoogleClient,
@@ -186,8 +186,4 @@ export async function refresh() {
     }
 
     return [];
-}
-
-function isErrorWithCode(error: unknown) {
-    return error !== null && typeof error === "object" && "code" in error;
 }
