@@ -6,6 +6,7 @@ import {
     useQuery,
     useQueryClient,
 } from "@tanstack/react-query";
+import { Duration } from "luxon";
 import { useState } from "react";
 import { FiExternalLink } from "react-icons/fi";
 import type { RouterOutputs } from "#src/routers/root";
@@ -180,10 +181,21 @@ interface VideoTileProps {
 
 function VideoTile({ video, onClick }: VideoTileProps) {
     const channelUrl = `https://youtube.com/channel/${video.channel.handle ?? video.channel.id}`;
+    const videoDuration = Duration.fromISO(video.duration);
+    const duration =
+        videoDuration >= Duration.fromObject({ hours: 1 })
+            ? Duration.fromISO(video.duration).toFormat("h:mm:ss")
+            : Duration.fromISO(video.duration).toFormat("m:ss");
 
     return (
         <div key={video.id} className="flex w-[480] flex-col gap-2 lg:w-[240]">
             <div className="relative flex">
+                {Boolean(duration) && (
+                    <div className="absolute bottom-1 right-1 rounded bg-black px-1 text-sm">
+                        {duration}
+                    </div>
+                )}
+
                 <div className="absolute flex h-full w-full flex-row opacity-0 hover:opacity-30">
                     <button
                         type="button"
