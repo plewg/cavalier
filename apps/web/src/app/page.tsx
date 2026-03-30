@@ -29,20 +29,20 @@ export default function Home() {
     }
 
     return (
-        <main className="flex h-full w-full flex-col items-center justify-start gap-10 p-4">
-            <div className="flex w-full flex-col justify-between md:flex-row">
-                <div className="self-center bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-center text-4xl font-extrabold text-transparent md:self-start">
+        <main className="flex min-h-full w-full flex-col items-center justify-start gap-10 p-4">
+            <div className="flex w-full flex-col items-center justify-between gap-2 lg:flex-row">
+                <div className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-center text-4xl font-extrabold text-transparent lg:self-start">
                     CAVALIER
                 </div>
                 {session === null ? (
                     <a
-                        className="flex items-center rounded-md bg-green-700 px-2"
+                        className="w-48 items-center rounded-md border-2 border-green-600 bg-green-700 px-2 py-3 text-center"
                         href="/api/auth/login"
                     >
                         Log In
                     </a>
                 ) : (
-                    <div className="flex flex-col items-center gap-2 md:flex-row md:justify-end">
+                    <div className="flex flex-col-reverse items-center gap-2 lg:flex-row lg:justify-end">
                         {session.user.watchLaterPlaylistId !== null ? (
                             <a
                                 className="flex flex-row items-center gap-1"
@@ -67,7 +67,7 @@ export default function Home() {
                             Refresh Uploads
                         </button>
                         <a
-                            className="flex w-48 items-center justify-center rounded-md border-2 border-green-600 bg-green-700 p-3 px-2"
+                            className="flex w-48 items-center justify-center rounded-md border-2 border-green-600 bg-green-700 px-2 py-3"
                             href="/api/auth/logout"
                         >
                             Log Out
