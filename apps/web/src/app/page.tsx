@@ -184,8 +184,8 @@ function VideoTile({ video, onClick }: VideoTileProps) {
     const videoDuration = Duration.fromISO(video.duration);
     const duration =
         videoDuration >= Duration.fromObject({ hours: 1 })
-            ? Duration.fromISO(video.duration).toFormat("h:mm:ss")
-            : Duration.fromISO(video.duration).toFormat("m:ss");
+            ? videoDuration.toFormat("h:mm:ss")
+            : videoDuration.toFormat("m:ss");
 
     return (
         <div key={video.id} className="flex w-[480] flex-col gap-2 lg:w-[240]">
