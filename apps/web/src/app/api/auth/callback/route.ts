@@ -109,8 +109,12 @@ async function createWatchLaterPlaylist(
             ? "Cavalier Watch Later"
             : `Cavalier Watch Later - ${env.DEPLOYMENT_ENVIRONMENT}`;
 
+    const existingPlaylist = playlists.find(
+        (playlist) => playlist.snippet?.title === title,
+    );
+
     const playlist =
-        playlists.find((playlist) => playlist.snippet?.title === title) ??
+        existingPlaylist ??
         (
             await youtubeApi.playlists.insert({
                 auth: client,
