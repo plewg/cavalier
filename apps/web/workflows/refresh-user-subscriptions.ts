@@ -1,5 +1,6 @@
 // import type { youtube_v3 } from "@googleapis/youtube";
 import { youtube } from "@googleapis/youtube";
+import type { youtube_v3 } from "@googleapis/youtube";
 import type { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
 import { start } from "workflow/api";
@@ -28,14 +29,13 @@ export async function refreshSubscriptions(userId: string) {
             orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
         });
 
-        const youtubeApi = youtube("v3");
-        const client = createGoogleClientForSession(session);
+        const auth = createGoogleClientForSession(session);
+        const youtubeApi = youtube({ version: "v3", auth });
 
         const now = DateTime.now().toJSDate();
 
         const subscriptions = await thePaginator(async (cursor) => {
             const res = await youtubeApi.subscriptions.list({
-                auth: client,
                 maxResults: PAGE_SIZE,
                 mine: true,
                 pageToken: cursor,
@@ -52,53 +52,7 @@ export async function refreshSubscriptions(userId: string) {
             .map((subscription) => subscription.snippet?.resourceId?.channelId)
             .filter((channelId) => channelId != null);
 
-        const channelIdChunks = chunk(channelIds, PAGE_SIZE);
-        await asyncForEach(channelIdChunks, 10, async (channelIdChunk) => {
-            const res = await youtubeApi.channels.list({
-                auth: client,
-                maxResults: PAGE_SIZE,
-                part: ["id", "snippet", "contentDetails"],
-                id: channelIdChunk,
-            });
-
-            const channels = res.data.items ?? [];
-
-            for (const channel of channels) {
-                if (
-                    channel.id == null ||
-                    channel.snippet?.title == null ||
-                    channel.contentDetails?.relatedPlaylists?.uploads == null ||
-                    channel.snippet.thumbnails?.default?.url == null
-                ) {
-                    throw new UnreachableError(
-                        "required properties are missing",
-                    );
-                }
-
-                await prisma.channel.upsert({
-                    where: { id: channel.id },
-                    create: {
-                        id: channel.id,
-                        lastRefreshedAt: now,
-                        name: channel.snippet.title,
-                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                        raw: channel as Prisma.JsonObject,
-                        handle: channel.snippet.customUrl,
-                        uploadsPlaylistId:
-                            channel.contentDetails.relatedPlaylists.uploads,
-                        profilePictureUrl:
-                            channel.snippet.thumbnails.default.url,
-                    },
-                    update: {
-                        lastRefreshedAt: now,
-                        name: channel.snippet.title,
-                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                        raw: channel as Prisma.JsonObject,
-                        handle: channel.snippet.customUrl,
-                    },
-                });
-            }
-        });
+        await importChannels(youtubeApi, channelIds);
 
         const subscriptionIds = subscriptions
             .map((subscription) => subscription.id)
@@ -143,4 +97,53 @@ export async function refreshSubscriptions(userId: string) {
         console.log("Something went wrong", error);
         throw error;
     }
+}
+
+// TODO: move
+export async function importChannels(
+    youtubeApi: youtube_v3.Youtube,
+    channelIds: string[],
+) {
+    const channelIdChunks = chunk(channelIds, PAGE_SIZE);
+
+    await asyncForEach(channelIdChunks, 10, async (channelIdChunk) => {
+        const now = DateTime.now().toJSDate();
+
+        const res = await youtubeApi.channels.list({
+            maxResults: PAGE_SIZE,
+            part: ["id", "snippet", "contentDetails"],
+            id: channelIdChunk,
+        });
+
+        const channels = res.data.items ?? [];
+
+        for (const channel of channels) {
+            if (
+                channel.id == null ||
+                channel.snippet?.title == null ||
+                channel.contentDetails?.relatedPlaylists?.uploads == null ||
+                channel.snippet.thumbnails?.default?.url == null
+            ) {
+                throw new UnreachableError("required properties are missing");
+            }
+
+            const channelData = {
+                id: channel.id,
+                lastRefreshedAt: now,
+                name: channel.snippet.title,
+                // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                raw: channel as Prisma.JsonObject,
+                handle: channel.snippet.customUrl,
+                uploadsPlaylistId:
+                    channel.contentDetails.relatedPlaylists.uploads,
+                profilePictureUrl: channel.snippet.thumbnails.default.url,
+            } satisfies Prisma.ChannelUpdateInput;
+
+            await prisma.channel.upsert({
+                where: { id: channel.id },
+                create: channelData,
+                update: channelData,
+            });
+        }
+    });
 }
