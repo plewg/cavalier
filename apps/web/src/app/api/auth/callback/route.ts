@@ -1,4 +1,7 @@
+import { youtube } from "@googleapis/youtube";
 import { createId } from "@paralleldrive/cuid2";
+import type { PrismaClient, User } from "@prisma/client";
+import type { OAuth2Client } from "google-auth-library";
 import { decode } from "jsonwebtoken";
 import { Duration } from "luxon";
 import { cookies } from "next/headers";
@@ -8,10 +11,13 @@ import { start } from "workflow/api";
 import { prisma } from "#src/db/prisma";
 import { env } from "#src/env";
 import { appToken } from "#src/trpc";
+import { UnreachableError } from "#src/utils/errors";
+import { thePaginator } from "#src/utils/pagination";
 import {
     idTokenSchema,
     tokensSchema,
     createGoogleClient,
+    PAGE_SIZE,
 } from "#src/youtube/google";
 import { refreshUserSubscriptions } from "workflows/refresh-user-subscriptions";
 
@@ -40,7 +46,8 @@ export async function GET(req: NextRequest) {
         where: { googleId: parsedIdToken.sub },
     });
 
-    const { userId } = await prisma.session.create({
+    const session = await prisma.session.create({
+        include: { user: true },
         data: {
             id: createId(),
             token: sessionToken,
@@ -59,7 +66,11 @@ export async function GET(req: NextRequest) {
     });
 
     if (user == null) {
-        await start(refreshUserSubscriptions, [userId]);
+        await start(refreshUserSubscriptions, [session.user.id]);
+    }
+
+    if (session.user.watchLaterPlaylistId === null) {
+        await createWatchLaterPlaylist(session.user, client, prisma);
     }
 
     const cookieStore = await cookies();
@@ -70,4 +81,57 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.redirect(env.APP_URL);
+}
+
+async function createWatchLaterPlaylist(
+    user: User,
+    client: OAuth2Client,
+    prisma: PrismaClient,
+) {
+    const youtubeApi = youtube("v3");
+    const playlists = await thePaginator(async (cursor) => {
+        const res = await youtubeApi.playlists.list({
+            mine: true,
+            auth: client,
+            part: ["snippet"],
+            maxResults: PAGE_SIZE,
+            pageToken: cursor,
+        });
+
+        return {
+            data: res.data.items ?? [],
+            nextCursor: res.data.nextPageToken ?? undefined,
+        };
+    });
+
+    const title =
+        env.DEPLOYMENT_ENVIRONMENT === "production"
+            ? "Cavalier Watch Later"
+            : `Cavalier Watch Later - ${env.DEPLOYMENT_ENVIRONMENT}`;
+
+    const playlist =
+        playlists.find((playlist) => playlist.snippet?.title === title) ??
+        (
+            await youtubeApi.playlists.insert({
+                auth: client,
+                part: ["id", "snippet", "status"],
+                requestBody: {
+                    snippet: {
+                        title,
+                    },
+                    status: {
+                        privacyStatus: "unlisted",
+                    },
+                },
+            })
+        ).data;
+
+    if (playlist.id == null) {
+        throw new UnreachableError("'id' missing on playlist response");
+    }
+
+    await prisma.user.update({
+        where: { id: user.id },
+        data: { watchLaterPlaylistId: playlist.id },
+    });
 }
