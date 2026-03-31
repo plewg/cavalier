@@ -70,26 +70,20 @@ export const videoRouter = createTrpcRouter({
                     const youtubeApi = youtube("v3");
 
                     console.log(`Saving video ${videoId} to watch later`);
-                    try {
-                        await youtubeApi.playlistItems.insert({
-                            auth: client,
-                            part: ["snippet"],
-                            requestBody: {
-                                snippet: {
-                                    playlistId:
-                                        session.user.watchLaterPlaylistId,
-                                    resourceId: {
-                                        kind: "youtube#video",
-                                        videoId,
-                                    },
+
+                    await youtubeApi.playlistItems.insert({
+                        auth: client,
+                        part: ["snippet"],
+                        requestBody: {
+                            snippet: {
+                                playlistId: session.user.watchLaterPlaylistId,
+                                resourceId: {
+                                    kind: "youtube#video",
+                                    videoId,
                                 },
                             },
-                        });
-                    } catch (error: unknown) {
-                        console.log("log", error);
-                        console.error("error", error);
-                        throw error;
-                    }
+                        },
+                    });
                 }
 
                 await prisma.userVideo.create({
