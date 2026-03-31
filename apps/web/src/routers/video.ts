@@ -1,11 +1,6 @@
-import type { youtube_v3 } from "@googleapis/youtube";
 import { youtube } from "@googleapis/youtube";
-import type { PrismaClient, User } from "@prisma/client";
-import type { OAuth2Client } from "google-auth-library";
 import z from "zod";
-import { env } from "#src/env";
 import { createTrpcRouter, protectedProcedure } from "#src/trpc";
-import { UnreachableError } from "#src/utils/errors";
 import { createGoogleClientForSession } from "#src/youtube/google";
 
 const PAGE_SIZE = 100;
@@ -74,22 +69,13 @@ export const videoRouter = createTrpcRouter({
                 if (save) {
                     const youtubeApi = youtube("v3");
 
-                    const watchLaterPlaylistId =
-                        session.user.watchLaterPlaylistId ??
-                        (await createWatchLaterPlaylist(
-                            session.user,
-                            client,
-                            youtubeApi,
-                            prisma,
-                        ));
-
                     console.log(`Saving video ${videoId} to watch later`);
                     await youtubeApi.playlistItems.insert({
                         auth: client,
                         part: ["snippet"],
                         requestBody: {
                             snippet: {
-                                playlistId: watchLaterPlaylistId,
+                                playlistId: session.user.watchLaterPlaylistId,
                                 resourceId: {
                                     kind: "youtube#video",
                                     videoId,
@@ -109,40 +95,3 @@ export const videoRouter = createTrpcRouter({
             },
         ),
 });
-
-async function createWatchLaterPlaylist(
-    user: User,
-    client: OAuth2Client,
-    youtubeApi: youtube_v3.Youtube,
-    prisma: PrismaClient,
-) {
-    const title =
-        env.DEPLOYMENT_ENVIRONMENT === "production"
-            ? "Cavalier Watch Later"
-            : `Cavalier Watch Later - ${env.DEPLOYMENT_ENVIRONMENT}`;
-
-    console.log(`Creating watch later playlist for ${user.id}`);
-    const res = await youtubeApi.playlists.insert({
-        auth: client,
-        part: ["id", "snippet", "status"],
-        requestBody: {
-            snippet: {
-                title,
-            },
-            status: {
-                privacyStatus: "unlisted",
-            },
-        },
-    });
-
-    if (res.data.id == null) {
-        throw new UnreachableError("'id' missing on playlist response");
-    }
-
-    await prisma.user.update({
-        where: { id: user.id },
-        data: { watchLaterPlaylistId: res.data.id },
-    });
-
-    return res.data.id;
-}
