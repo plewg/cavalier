@@ -12,6 +12,7 @@ import type { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "#src/db/prisma";
+import { GOOGLE_SIGNED_OUT, isErrorWithCode } from "#src/utils/errors";
 
 /**
  * 1. CONTEXT
@@ -125,10 +126,38 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
         throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
-    return await next({
+    const res = await next({
         ctx: {
             // infers the `session` as non-nullable
             session: { ...ctx.session },
         },
     });
+
+    if (!res.ok) {
+        const error = res.error;
+        if (
+            isErrorWithCode(error) &&
+            typeof error.code == "number" &&
+            error.code >= 500
+        ) {
+            throw error;
+        }
+
+        console.log(
+            "Google API error, logging user out and redirecting",
+            error,
+        );
+
+        ctx.cookies.delete(appToken);
+        await prisma.session.delete({
+            where: { id: ctx.session.id },
+        });
+
+        throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: GOOGLE_SIGNED_OUT,
+        });
+    }
+
+    return res;
 });
