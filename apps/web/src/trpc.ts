@@ -8,11 +8,12 @@
  */
 
 import { TRPCError, initTRPC } from "@trpc/server";
+import { GaxiosError } from "googleapis-common";
 import type { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "#src/db/prisma";
-import { GOOGLE_SIGNED_OUT, isErrorWithCode } from "#src/utils/errors";
+import { GOOGLE_SIGNED_OUT } from "#src/utils/errors";
 
 /**
  * 1. CONTEXT
@@ -133,25 +134,26 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
         },
     });
 
-    if (!res.ok) {
-        const error = res.error;
-        if (
-            isErrorWithCode(error) &&
-            typeof error.code == "number" &&
-            error.code >= 500
-        ) {
-            throw error;
-        }
-
+    if (
+        !res.ok &&
+        res.error.cause instanceof GaxiosError &&
+        typeof res.error.cause.code == "number" &&
+        res.error.cause.code >= 400 &&
+        res.error.cause.code < 500
+    ) {
         console.log(
             "Google API error, logging user out and redirecting",
-            error,
+            res.error.cause,
         );
 
         ctx.cookies.delete(appToken);
-        await prisma.session.delete({
-            where: { id: ctx.session.id },
-        });
+        try {
+            await prisma.session.delete({
+                where: { id: ctx.session.id },
+            });
+        } catch (error: unknown) {
+            console.log("Error deleting session", error);
+        }
 
         throw new TRPCError({
             code: "UNAUTHORIZED",
