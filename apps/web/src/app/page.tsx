@@ -1,6 +1,5 @@
 "use client";
 
-import { Menu } from "@base-ui/react";
 import {
     useInfiniteQuery,
     useMutation,
@@ -8,9 +7,8 @@ import {
     useQueryClient,
 } from "@tanstack/react-query";
 import { Duration } from "luxon";
-import Link from "next/link";
 import { useState } from "react";
-import { FiArrowDown, FiArrowUp, FiExternalLink, FiMenu } from "react-icons/fi";
+import { FiArrowDown, FiArrowUp } from "react-icons/fi";
 import type { RouterOutputs } from "#src/routers/root";
 import { useTrpc } from "#src/trpc/react";
 import { UnreachableError } from "#src/utils/errors";
@@ -22,81 +20,11 @@ export default function Home() {
     );
 
     if (isLoading || session === undefined) {
-        return (
-            <div className="flex h-full w-full items-center justify-center">
-                Loading
-            </div>
-        );
+        return <div className="flex items-center justify-center">Loading</div>;
     }
 
     return (
-        <main className="flex min-h-full w-full flex-col items-center justify-start gap-10 p-4">
-            <div className="flex w-full flex-row items-center justify-between gap-2">
-                <div className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-center text-4xl font-extrabold text-transparent">
-                    CAVALIER
-                </div>
-                {session === null ? (
-                    <a
-                        className="w-48 items-center rounded-md border-2 border-green-600 bg-green-700 px-2 py-3 text-center"
-                        href="/api/auth/login"
-                    >
-                        Log In
-                    </a>
-                ) : (
-                    <Menu.Root>
-                        <Menu.Trigger
-                            render={
-                                <button
-                                    className="flex justify-center self-center rounded-md border-2 border-gray-600 p-3 text-center lg:self-end"
-                                    type="button"
-                                >
-                                    <FiMenu />
-                                </button>
-                            }
-                        />
-                        <Menu.Portal>
-                            <Menu.Positioner
-                                align="end"
-                                className="w-48 rounded-md border border-gray-500 bg-gray-900 p-1"
-                            >
-                                <Menu.Popup className="p-1">
-                                    {session.user.watchLaterPlaylistId !==
-                                    null ? (
-                                        <div>
-                                            <Menu.Group>
-                                                <Menu.Item>
-                                                    <a
-                                                        href={`https://youtube.com/playlist?list=${session.user.watchLaterPlaylistId}`}
-                                                        className="flex flex-row items-center gap-1"
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                    >
-                                                        View Playlist
-                                                        <FiExternalLink />
-                                                    </a>
-                                                </Menu.Item>
-                                                <Menu.Item>
-                                                    <Link href="/profile">
-                                                        Profile
-                                                    </Link>
-                                                </Menu.Item>
-                                            </Menu.Group>
-                                            <Menu.Separator className="my-1 h-[1] bg-gray-200" />
-                                        </div>
-                                    ) : undefined}
-                                    <Menu.Group>
-                                        <Menu.Item>
-                                            <a href="/api/auth/logout">
-                                                Log Out
-                                            </a>
-                                        </Menu.Item>
-                                    </Menu.Group>
-                                </Menu.Popup>
-                            </Menu.Positioner>
-                        </Menu.Portal>
-                    </Menu.Root>
-                )}
-            </div>
+        <main className="min-h-full p-4">
             {session !== null ? <VideoScreen /> : undefined}
         </main>
     );
@@ -114,12 +42,16 @@ function VideoScreen() {
             sortDirection,
         },
         {
-            getNextPageParam: (lastPage) => ({
-                id: lastPage.nextCursor,
-            }),
+            getNextPageParam: (lastPage) => {
+                return lastPage.nextCursor !== undefined
+                    ? {
+                          id: lastPage.nextCursor,
+                      }
+                    : undefined;
+            },
         },
     );
-    const { data, isLoading, fetchNextPage, isFetching } =
+    const { data, isLoading, fetchNextPage, hasNextPage, isFetching } =
         useInfiniteQuery(videoQueryOptions);
 
     const { mutate: hideVideo } = useMutation(
@@ -154,7 +86,7 @@ function VideoScreen() {
     }
 
     return (
-        <div className="flex flex-col items-center gap-3">
+        <div className="mx-auto flex w-full max-w-[480] flex-col items-center gap-3 self-center lg:max-w-max">
             <button
                 type="button"
                 onClick={() => {
@@ -164,7 +96,7 @@ function VideoScreen() {
             >
                 {sortDirection === "asc" ? <FiArrowUp /> : <FiArrowDown />}
             </button>
-            <div className="grid max-w-7xl grid-cols-1 gap-3 gap-y-8 pb-[100vh] lg:grid-cols-4 xl:grid-cols-5">
+            <div className="grid w-full max-w-7xl grid-cols-1 gap-3 gap-y-8 pb-[100vh] lg:grid-cols-4 xl:grid-cols-5">
                 {data.pages.map(({ videos }) => {
                     return videos.map((video) => {
                         return (
@@ -178,14 +110,20 @@ function VideoScreen() {
                         );
                     });
                 })}
-                <button
-                    type="button"
-                    disabled={isFetching}
-                    onClick={() => void fetchNextPage()}
-                    className="aspect-video w-full max-w-[480] rounded-md bg-gray-600 p-3 lg:w-[240]"
-                >
-                    Load More
-                </button>
+                {hasNextPage ? (
+                    <button
+                        type="button"
+                        disabled={isFetching}
+                        onClick={() => void fetchNextPage()}
+                        className="aspect-video w-full max-w-[480] rounded-md bg-gray-600 p-3 lg:w-[240]"
+                    >
+                        Load More
+                    </button>
+                ) : (
+                    <div className="flex aspect-video w-full max-w-[480] items-center justify-center rounded-md bg-gray-600 p-3 lg:w-[240]">
+                        Congratulations!
+                    </div>
+                )}
             </div>
         </div>
     );
