@@ -30,8 +30,8 @@ dev::usage() {
     echo '       dev db preview <br>  # connect to preview database'
     echo '       dev db migrate local # migrate local database'
     echo '       dev db dump local    # dump local database'
-    echo '       dev db restore local # restore local database'
-    echo '       dev db restore prod  # restore prod database'
+    echo '       dev db load local # load local database'
+    echo '       dev db load prod  # load prod database'
     echo '       dev env edit dev     # edit encrypted local development env vars'
     echo '       dev env edit preview # edit encrypted preview env vars'
     echo '       dev env edit prod    # edit encrypted production env vars'
@@ -109,7 +109,7 @@ dev::start() {
     # start db
     dev::db::up
 
-    dev::db::restore::local
+    dev::db::load::local
 
     # run dev
     turbo dev
@@ -157,7 +157,7 @@ dev::db::dump::local() {
     pg_dump "$DATABASE_URL" --data-only --file=db_dump_local.sql.gz --format=plain --no-owner --exclude-table=_prisma_migrations --compress=gzip
 }
 
-dev::db::restore::local() {
+dev::db::load::local() {
     dev::db::up
 
     gunzip --keep --force db_dump_local.sql.gz
@@ -165,10 +165,14 @@ dev::db::restore::local() {
     psql "$DATABASE_URL" < db_dump_local.sql > /dev/null 2>&1
 }
 
-dev::db::restore::prod() {
-    gunzip --keep --force db_dump_local.sql.gz
-    echo "Restoring DB to prod"
-    psql "$(neonctl connection-string 'production' --database-name 'cavalier')" < db_dump_local.sql
+dev::db::load::prod() {
+    read -p "Loading DB dumb to prod. Are you sure? [yn]: " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        gunzip --keep --force db_dump_local.sql.gz
+        echo "Restoring DB to prod"
+        psql "$(neonctl connection-string 'production' --database-name 'cavalier')" < db_dump_local.sql
+    fi
 }
 
 dev::db::preview() {
@@ -225,8 +229,8 @@ case "$*" in
     'db migrate local') dev::db::migrate::local ;;
     'db migrate prod') dev::db::migrate::prod ;;
     'db dump local') dev::db::dump::local ;;
-    'db restore local') dev::db::restore::local ;;
-    'db restore prod'*) dev::db::restore::prod ;;
+    'db load local') dev::db::load::local ;;
+    'db load prod'*) dev::db::load::prod ;;
     'env edit dev'*) dev::env::edit::dev "${@:4}" ;;
     'env edit preview'*) dev::env::edit::preview "${@:4}" ;;
     'env edit prod'*) dev::env::edit::prod "${@:4}" ;;
