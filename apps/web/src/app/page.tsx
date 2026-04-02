@@ -17,7 +17,7 @@ export default function Home() {
     const session = useContext(SessionContext);
 
     return (
-        <main className="min-h-full p-4">
+        <main className="flex min-h-full flex-grow items-center justify-center p-4">
             {session !== null ? <VideoScreen /> : undefined}
         </main>
     );
@@ -75,7 +75,7 @@ function VideoScreen() {
     );
 
     if (isLoading || data === undefined) {
-        return <div className="flex items-center justify-center">Loading</div>;
+        return <div>Loading...</div>;
     }
 
     return (
@@ -89,7 +89,7 @@ function VideoScreen() {
             >
                 {sortDirection === "asc" ? <FiArrowUp /> : <FiArrowDown />}
             </button>
-            <div className="grid w-full max-w-7xl grid-cols-1 gap-3 gap-y-8 pb-[100vh] lg:grid-cols-4 xl:grid-cols-5">
+            <div className="grid w-full max-w-7xl grid-cols-1 gap-3 gap-y-8 pb-[100svh] lg:grid-cols-4 xl:grid-cols-5">
                 {data.pages.map(({ videos }) => {
                     return videos.map((video) => {
                         return (
@@ -108,7 +108,7 @@ function VideoScreen() {
                         type="button"
                         disabled={isFetching}
                         onClick={() => void fetchNextPage()}
-                        className="aspect-video w-full max-w-[480] rounded-md bg-gray-600 p-3 lg:w-[240]"
+                        className="aspect-video w-full max-w-[480] rounded-md border-2 border-gray-600 bg-gray-800 p-3 lg:w-[240]"
                     >
                         Load More
                     </button>
