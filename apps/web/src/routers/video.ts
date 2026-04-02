@@ -11,16 +11,18 @@ export const videoRouter = createTrpcRouter({
             z
                 .object({
                     cursor: z.object({ id: z.string() }).optional(),
-                    sortDirection: z
-                        .enum(["asc", "desc"])
-                        .optional()
-                        .default("asc"),
+                    sortDirection: z.enum(["asc", "desc"]).default("asc"),
+                    filters: z
+                        .object({
+                            channelIds: z.array(z.string()).optional(),
+                        })
+                        .default({}),
                 })
                 .optional()
                 .default({ cursor: undefined, sortDirection: "asc" }),
         )
         .query(async ({ ctx, input }) => {
-            const { cursor, sortDirection } = input;
+            const { cursor, sortDirection, filters } = input;
 
             const videos = await ctx.prisma.video.findMany({
                 // We fetch one extra here so that we can use it to grab the
@@ -40,7 +42,10 @@ export const videoRouter = createTrpcRouter({
                 },
                 where: {
                     channel: {
-                        subscriptions: { some: { userId: ctx.session.userId } },
+                        subscriptions: {
+                            some: { userId: ctx.session.userId },
+                        },
+                        id: { in: filters.channelIds },
                     },
                     userVideos: {
                         none: { userId: ctx.session.userId },
