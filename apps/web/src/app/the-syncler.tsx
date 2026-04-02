@@ -1,5 +1,6 @@
 "use client";
 
+import { Popover } from "@base-ui/react";
 import { useMutationState } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { FiActivity, FiAlertOctagon, FiCheckCircle } from "react-icons/fi";
@@ -26,11 +27,27 @@ export function TheSyncler() {
 
         return (
             <div>
-                <FiAlertOctagon
-                    size="22px"
-                    title={message}
-                    className="text-red-700"
-                />
+                <Popover.Root>
+                    <Popover.Trigger openOnHover>
+                        <FiAlertOctagon
+                            size="22px"
+                            title={message}
+                            className="text-red-600"
+                        />
+                    </Popover.Trigger>
+                    <Popover.Portal>
+                        <Popover.Positioner>
+                            <Popover.Popup className="rounded-md border-2 border-indigo-50 bg-slate-800 p-2">
+                                <Popover.Title className="text-lg font-bold text-red-600">
+                                    Error
+                                </Popover.Title>
+                                <Popover.Description>
+                                    {message}
+                                </Popover.Description>
+                            </Popover.Popup>
+                        </Popover.Positioner>
+                    </Popover.Portal>
+                </Popover.Root>
             </div>
         );
     }
