@@ -3,25 +3,18 @@
 import {
     useInfiniteQuery,
     useMutation,
-    useQuery,
     useQueryClient,
 } from "@tanstack/react-query";
 import { Duration } from "luxon";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { FiArrowDown, FiArrowUp } from "react-icons/fi";
+import { SessionContext } from "#src/providers/session";
 import type { RouterOutputs } from "#src/routers/root";
 import { useTrpc } from "#src/trpc/react";
 import { UnreachableError } from "#src/utils/errors";
 
 export default function Home() {
-    const api = useTrpc();
-    const { data: session, isLoading } = useQuery(
-        api.auth.getSession.queryOptions(),
-    );
-
-    if (isLoading || session === undefined) {
-        return <div className="flex items-center justify-center">Loading</div>;
-    }
+    const session = useContext(SessionContext);
 
     return (
         <main className="min-h-full p-4">
@@ -82,7 +75,7 @@ function VideoScreen() {
     );
 
     if (isLoading || data === undefined) {
-        return <div>Loading</div>;
+        return <div className="flex items-center justify-center">Loading</div>;
     }
 
     return (

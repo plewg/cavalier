@@ -8,8 +8,8 @@ import type { ReactNode } from "react";
 import { FiExternalLink, FiMenu } from "react-icons/fi";
 import { TheSyncler } from "#src/app/the-syncler";
 import { prisma } from "#src/db/prisma";
+import { Providers } from "#src/providers";
 import { appToken } from "#src/trpc";
-import { TrpcProvider } from "#src/trpc/react";
 
 const atkinson = Atkinson_Hyperlegible_Next({
     subsets: ["latin"],
@@ -30,7 +30,7 @@ export default async function Layout({ children }: Props) {
     const session = await getSession();
 
     return (
-        <TrpcProvider>
+        <Providers session={session}>
             <html className="h-full w-full" lang="en">
                 <body
                     className={`${atkinson.variable} flex min-h-full flex-col gap-10 bg-gray-900 p-4 font-sans text-indigo-50`}
@@ -112,7 +112,7 @@ export default async function Layout({ children }: Props) {
                     {children}
                 </body>
             </html>
-        </TrpcProvider>
+        </Providers>
     );
 }
 
