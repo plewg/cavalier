@@ -277,7 +277,7 @@ function SubscriptionBar({ onClick, selected }: SubscriptionBarProps) {
     }
 
     return (
-        <div className="flex flex-col items-center gap-2 px-4">
+        <div className="flex flex-col items-center gap-2">
             <div
                 ref={setDivRef}
                 style={{
