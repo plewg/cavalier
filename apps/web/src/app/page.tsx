@@ -36,24 +36,22 @@ function VideoScreen() {
     const api = useTrpc();
     const queryClient = useQueryClient();
 
-    const videoQueryKey = api.video.feed.infiniteQueryKey({ sortDirection });
-    const videoQueryOptions = api.video.feed.infiniteQueryOptions(
-        {
-            sortDirection,
-            filters: {
-                channelIds: channelIds.length > 0 ? channelIds : undefined,
-            },
+    const queryParams = {
+        sortDirection,
+        filters: {
+            channelIds: channelIds.length > 0 ? channelIds : undefined,
         },
-        {
-            getNextPageParam: (lastPage) => {
-                return lastPage.nextCursor !== undefined
-                    ? {
-                          id: lastPage.nextCursor,
-                      }
-                    : undefined;
-            },
+    };
+    const videoQueryKey = api.video.feed.infiniteQueryKey(queryParams);
+    const videoQueryOptions = api.video.feed.infiniteQueryOptions(queryParams, {
+        getNextPageParam: (lastPage) => {
+            return lastPage.nextCursor !== undefined
+                ? {
+                      id: lastPage.nextCursor,
+                  }
+                : undefined;
         },
-    );
+    });
     const { data, fetchNextPage, hasNextPage, isFetching } =
         useInfiniteQuery(videoQueryOptions);
 
