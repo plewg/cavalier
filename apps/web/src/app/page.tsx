@@ -3,11 +3,17 @@
 import {
     useInfiniteQuery,
     useMutation,
+    useQuery,
     useQueryClient,
 } from "@tanstack/react-query";
 import { Duration } from "luxon";
-import { useContext, useState } from "react";
-import { FiArrowDown, FiArrowUp } from "react-icons/fi";
+import { useContext, useEffect, useState } from "react";
+import {
+    FiArrowDown,
+    FiArrowUp,
+    FiChevronDown,
+    FiChevronUp,
+} from "react-icons/fi";
 import { SessionContext } from "#src/providers/session";
 import type { RouterOutputs } from "#src/routers/root";
 import { useTrpc } from "#src/trpc/react";
@@ -17,7 +23,7 @@ export default function Home() {
     const session = useContext(SessionContext);
 
     return (
-        <main className="flex min-h-full flex-grow items-center justify-center p-4">
+        <main className="flex min-h-full flex-grow flex-row justify-center p-4">
             {session !== null ? <VideoScreen /> : undefined}
         </main>
     );
@@ -25,6 +31,7 @@ export default function Home() {
 
 function VideoScreen() {
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+    const [channelIds, setChannelIds] = useState<string[]>([]);
 
     const api = useTrpc();
     const queryClient = useQueryClient();
@@ -33,6 +40,9 @@ function VideoScreen() {
     const videoQueryOptions = api.video.feed.infiniteQueryOptions(
         {
             sortDirection,
+            filters: {
+                channelIds: channelIds.length > 0 ? channelIds : undefined,
+            },
         },
         {
             getNextPageParam: (lastPage) => {
@@ -44,7 +54,7 @@ function VideoScreen() {
             },
         },
     );
-    const { data, isLoading, fetchNextPage, hasNextPage, isFetching } =
+    const { data, fetchNextPage, hasNextPage, isFetching } =
         useInfiniteQuery(videoQueryOptions);
 
     const { mutate: hideVideo } = useMutation(
@@ -74,47 +84,70 @@ function VideoScreen() {
         }),
     );
 
-    if (isLoading || data === undefined) {
-        return <div>Loading...</div>;
-    }
-
     return (
-        <div className="mx-auto flex w-full max-w-[480] flex-col items-center gap-3 self-center lg:max-w-max">
-            <button
-                type="button"
-                onClick={() => {
-                    setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-                }}
-                className="flex justify-center self-end rounded-md border-2 border-gray-600 p-3 text-center"
-            >
-                {sortDirection === "asc" ? <FiArrowUp /> : <FiArrowDown />}
-            </button>
-            <div className="grid w-full max-w-7xl grid-cols-1 gap-3 gap-y-8 pb-[100svh] lg:grid-cols-4 xl:grid-cols-5">
-                {data.pages.map(({ videos }) => {
-                    return videos.map((video) => {
-                        return (
-                            <VideoTile
-                                key={video.id}
-                                video={video}
-                                onClick={(video: Video, save: boolean) => {
-                                    hideVideo({ videoId: video.id, save });
-                                }}
-                            />
-                        );
+        <div className="flex flex-col gap-8">
+            <SubscriptionBar
+                selected={channelIds}
+                onClick={(channelId) => {
+                    console.log(channelId);
+                    setChannelIds((prev) => {
+                        if (prev.includes(channelId)) {
+                            return prev.filter((id) => id !== channelId);
+                        } else {
+                            return [...prev, channelId];
+                        }
                     });
-                })}
-                {hasNextPage ? (
-                    <button
-                        type="button"
-                        disabled={isFetching}
-                        onClick={() => void fetchNextPage()}
-                        className="aspect-video w-full max-w-[480] rounded-md border-2 border-gray-600 bg-gray-800 p-3 lg:w-[240]"
-                    >
-                        Load More
-                    </button>
+                }}
+            />
+            <div className="mx-auto flex w-full max-w-[480] flex-col items-center gap-3 lg:max-w-max">
+                <button
+                    type="button"
+                    onClick={() => {
+                        setSortDirection(
+                            sortDirection === "asc" ? "desc" : "asc",
+                        );
+                    }}
+                    className="flex justify-center self-end rounded-md border-2 border-gray-600 p-3 text-center"
+                >
+                    {sortDirection === "asc" ? <FiArrowUp /> : <FiArrowDown />}
+                </button>
+                {data === undefined ? (
+                    <div>Loading...</div>
                 ) : (
-                    <div className="flex aspect-video w-full max-w-[480] items-center justify-center rounded-md bg-gray-600 p-3 lg:w-[240]">
-                        Congratulations!
+                    <div className="grid w-full max-w-7xl grid-cols-1 gap-3 gap-y-8 pb-[100svh] lg:grid-cols-4 xl:grid-cols-5">
+                        {data.pages.map(({ videos }) => {
+                            return videos.map((video) => {
+                                return (
+                                    <VideoTile
+                                        key={video.id}
+                                        video={video}
+                                        onClick={(
+                                            video: Video,
+                                            save: boolean,
+                                        ) => {
+                                            hideVideo({
+                                                videoId: video.id,
+                                                save,
+                                            });
+                                        }}
+                                    />
+                                );
+                            });
+                        })}
+                        {hasNextPage ? (
+                            <button
+                                type="button"
+                                disabled={isFetching}
+                                onClick={() => void fetchNextPage()}
+                                className="aspect-video w-full max-w-[480] rounded-md border-2 border-gray-600 bg-gray-800 p-3 lg:w-[240]"
+                            >
+                                Load More
+                            </button>
+                        ) : (
+                            <div className="flex aspect-video w-full max-w-[480] items-center justify-center rounded-md border-2 border-gray-600 bg-gray-800 p-3 lg:w-[240]">
+                                Congratulations!
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -203,6 +236,80 @@ function VideoTile({ video, onClick }: VideoTileProps) {
                     </a>
                 </div>
             </div>
+        </div>
+    );
+}
+
+interface SubscriptionBarProps {
+    onClick: (channelId: string) => void;
+    selected: string[];
+}
+
+function SubscriptionBar({ onClick, selected }: SubscriptionBarProps) {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const api = useTrpc();
+    const { data } = useQuery(api.subscription.list.queryOptions());
+    const [divRef, setDivRef] = useState<HTMLDivElement | null>(null);
+    const [canExpand, setCanExpand] = useState(false);
+
+    useEffect(() => {
+        if (divRef === null) {
+            return;
+        }
+
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                setCanExpand(entry.target.scrollHeight > 64);
+            }
+        });
+
+        resizeObserver.observe(divRef);
+        return () => {
+            resizeObserver.unobserve(divRef);
+        };
+    }, [divRef]);
+
+    if (data === undefined) {
+        return null;
+    }
+
+    return (
+        <div className="flex flex-col items-center gap-2 px-4">
+            <div
+                ref={setDivRef}
+                style={{
+                    maskImage:
+                        isExpanded || !canExpand
+                            ? undefined
+                            : "linear-gradient(to bottom, rgba(0,0,0,1) 75%, rgba(0,0,0,0))",
+                }}
+                className={`${isExpanded || !canExpand ? "h-auto" : "h-16 overflow-hidden"} flex w-full flex-row flex-wrap justify-center gap-1 bg-gradient-to-b from-indigo-50 to-transparent bg-clip-text text-transparent`}
+            >
+                {data.subscriptions.map((subscription) => (
+                    <img
+                        title={subscription.channel.name}
+                        onClick={() => {
+                            onClick(subscription.channel.id);
+                        }}
+                        key={subscription.id}
+                        className={`aspect-square h-12 rounded-[50%] border-2 ${selected.includes(subscription.channel.id) ? "border-red-600" : "border-indigo-50"}`}
+                        src={subscription.channel.profilePictureUrl}
+                    />
+                ))}
+            </div>
+            {canExpand ? (
+                <button
+                    type="button"
+                    onClick={() => setIsExpanded(() => !isExpanded)}
+                    className="flex w-56 flex-row justify-center transition-all hover:text-purple-400"
+                >
+                    {isExpanded ? (
+                        <FiChevronUp size="30" />
+                    ) : (
+                        <FiChevronDown size="30" />
+                    )}
+                </button>
+            ) : null}
         </div>
     );
 }
