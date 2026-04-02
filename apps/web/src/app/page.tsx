@@ -163,7 +163,10 @@ interface VideoTileProps {
 }
 
 function VideoTile({ video, onClick }: VideoTileProps) {
-    const channelUrl = `https://youtube.com/channel/${video.channel.handle ?? video.channel.id}`;
+    const channelUrl =
+        video.channel.handle !== null
+            ? `https://youtube.com/${video.channel.handle}`
+            : `https://youtube.com/channel/${video.channel.id}`;
     const videoDuration = Duration.fromISO(video.duration);
     const duration =
         videoDuration >= Duration.fromObject({ hours: 1 })
