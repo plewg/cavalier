@@ -25,7 +25,7 @@ export default function Home() {
     const session = useContext(SessionContext);
 
     return (
-        <main className="flex min-h-full flex-grow flex-row justify-center p-4">
+        <main className="h-full min-h-full p-4">
             {session !== null ? <VideoScreen /> : undefined}
         </main>
     );
@@ -87,11 +87,10 @@ function VideoScreen() {
     );
 
     return (
-        <div className="flex flex-col items-center justify-start gap-8 pb-[100svh]">
+        <div className="box-content flex h-full min-h-full flex-col items-center justify-start gap-8 pb-[100svh]">
             <SubscriptionBar
                 selected={channelIds}
                 onClick={(channelId) => {
-                    console.log(channelId);
                     setChannelIds((prev) => {
                         if (prev.includes(channelId)) {
                             return prev.filter((id) => id !== channelId);
@@ -101,7 +100,7 @@ function VideoScreen() {
                     });
                 }}
             />
-            <div className="flex w-full max-w-[480] flex-row items-center justify-between lg:w-[996] xl:w-[1248]">
+            <div className="flex w-full max-w-[480] flex-row items-center justify-between lg:w-[996] lg:max-w-full xl:w-[1248]">
                 <div className="flex">
                     <input
                         className="rounded-md px-2 py-1 text-slate-900"
