@@ -33,7 +33,7 @@ export default async function Layout({ children }: Props) {
         <Providers session={session}>
             <html className="h-full w-full" lang="en">
                 <body
-                    className={`${atkinson.variable} flex min-h-full flex-col gap-10 bg-gray-900 p-4 font-sans text-indigo-50`}
+                    className={`${atkinson.variable} flex h-full min-h-full flex-col gap-10 bg-gray-900 p-4 font-sans text-indigo-50`}
                 >
                     <div className="flex w-full flex-row items-center justify-between gap-2">
                         <div className="flex flex-row items-center gap-5">
