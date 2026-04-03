@@ -13,6 +13,7 @@ import {
     FiArrowUp,
     FiChevronDown,
     FiChevronUp,
+    FiLoader,
 } from "react-icons/fi";
 import { SessionContext } from "#src/providers/session";
 import type { RouterOutputs } from "#src/routers/root";
@@ -83,7 +84,7 @@ function VideoScreen() {
     );
 
     return (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col items-center justify-start gap-8 pb-[100svh]">
             <SubscriptionBar
                 selected={channelIds}
                 onClick={(channelId) => {
@@ -97,22 +98,28 @@ function VideoScreen() {
                     });
                 }}
             />
-            <div className="mx-auto flex w-full max-w-[480] flex-col items-center gap-3 lg:max-w-max">
-                <button
-                    type="button"
-                    onClick={() => {
-                        setSortDirection(
-                            sortDirection === "asc" ? "desc" : "asc",
-                        );
-                    }}
-                    className="flex justify-center self-end rounded-md border-2 border-gray-600 p-3 text-center"
-                >
-                    {sortDirection === "asc" ? <FiArrowUp /> : <FiArrowDown />}
-                </button>
-                {data === undefined ? (
-                    <div>Loading...</div>
-                ) : (
-                    <div className="grid w-full max-w-7xl grid-cols-1 gap-3 gap-y-8 pb-[100svh] lg:grid-cols-4 xl:grid-cols-5">
+            {data === undefined ? (
+                <div className="flex h-full -translate-y-16 items-center">
+                    <FiLoader size={30} className="animate-spin" />
+                </div>
+            ) : (
+                <div className="mx-auto flex w-full max-w-[480] flex-col items-center gap-3 lg:max-w-max">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setSortDirection(
+                                sortDirection === "asc" ? "desc" : "asc",
+                            );
+                        }}
+                        className="flex justify-center self-end rounded-md border-2 border-gray-600 p-3 text-center"
+                    >
+                        {sortDirection === "asc" ? (
+                            <FiArrowUp />
+                        ) : (
+                            <FiArrowDown />
+                        )}
+                    </button>
+                    <div className="grid w-full max-w-7xl grid-cols-1 gap-3 gap-y-8 lg:grid-cols-4 xl:grid-cols-5">
                         {data.pages.map(({ videos }) => {
                             return videos.map((video) => {
                                 return (
@@ -147,8 +154,8 @@ function VideoScreen() {
                             </div>
                         )}
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }
