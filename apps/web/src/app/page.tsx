@@ -18,6 +18,7 @@ import {
 import { SessionContext } from "#src/providers/session";
 import type { RouterOutputs } from "#src/routers/root";
 import { useTrpc } from "#src/trpc/react";
+import { useDebounce } from "#src/utils/debounce";
 import { UnreachableError } from "#src/utils/errors";
 
 export default function Home() {
@@ -33,6 +34,7 @@ export default function Home() {
 function VideoScreen() {
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const [channelIds, setChannelIds] = useState<string[]>([]);
+    const [titleFilter, setTitleFilter] = useDebounce(300, "");
 
     const api = useTrpc();
     const queryClient = useQueryClient();
@@ -41,6 +43,7 @@ function VideoScreen() {
         sortDirection,
         filters: {
             channelIds: channelIds.length > 0 ? channelIds : undefined,
+            title: titleFilter.length > 0 ? titleFilter : undefined,
         },
     };
     const videoQueryKey = api.video.feed.infiniteQueryKey(queryParams);
@@ -98,27 +101,34 @@ function VideoScreen() {
                     });
                 }}
             />
+            <div className="flex w-full max-w-[480] flex-row items-center justify-between lg:w-[996] xl:w-[1248]">
+                <div className="flex">
+                    <input
+                        className="rounded-md px-2 py-1 text-slate-900"
+                        onChange={(event) => {
+                            setTitleFilter(event.target.value);
+                        }}
+                        type="text"
+                    />
+                </div>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setSortDirection(
+                            sortDirection === "asc" ? "desc" : "asc",
+                        );
+                    }}
+                    className="flex justify-center rounded-md border-2 border-gray-600 p-3 text-center"
+                >
+                    {sortDirection === "asc" ? <FiArrowUp /> : <FiArrowDown />}
+                </button>
+            </div>
             {data === undefined ? (
                 <div className="flex h-full -translate-y-16 items-center">
                     <FiLoader size={30} className="animate-spin" />
                 </div>
             ) : (
-                <div className="mx-auto flex w-full max-w-[480] flex-col items-center gap-3 lg:max-w-max">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setSortDirection(
-                                sortDirection === "asc" ? "desc" : "asc",
-                            );
-                        }}
-                        className="flex justify-center self-end rounded-md border-2 border-gray-600 p-3 text-center"
-                    >
-                        {sortDirection === "asc" ? (
-                            <FiArrowUp />
-                        ) : (
-                            <FiArrowDown />
-                        )}
-                    </button>
+                <div className="mx-auto flex w-full max-w-[480] flex-col items-center gap-3 lg:w-[996] lg:max-w-max xl:w-[1248]">
                     <div className="grid w-full max-w-7xl grid-cols-1 gap-3 gap-y-8 lg:grid-cols-4 xl:grid-cols-5">
                         {data.pages.map(({ videos }) => {
                             return videos.map((video) => {
