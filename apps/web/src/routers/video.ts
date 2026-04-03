@@ -15,6 +15,7 @@ export const videoRouter = createTrpcRouter({
                     filters: z
                         .object({
                             channelIds: z.array(z.string()).optional(),
+                            title: z.string().optional(),
                         })
                         .default({}),
                 })
@@ -41,6 +42,10 @@ export const videoRouter = createTrpcRouter({
                     },
                 },
                 where: {
+                    title: {
+                        contains: filters.title,
+                        mode: "insensitive",
+                    },
                     channel: {
                         subscriptions: {
                             some: { userId: ctx.session.userId },
