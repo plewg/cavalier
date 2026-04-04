@@ -87,7 +87,7 @@ function VideoScreen() {
     );
 
     return (
-        <div className="box-content flex h-full min-h-full flex-col items-center justify-start gap-8 pb-[100svh]">
+        <div className="box-content flex min-h-full flex-col items-center justify-start gap-8 pb-[100svh]">
             <SubscriptionBar
                 selected={channelIds}
                 onClick={(channelId) => {
