@@ -5,10 +5,10 @@ import { DateTime } from "luxon";
 import { start } from "workflow/api";
 import { refreshChannelUploads } from "./refresh-channel-uploads";
 import { prisma } from "#src/db/prisma";
-import { chunk } from "#src/utils/array";
+import { asyncForEach, chunk } from "#src/utils/array";
 import { UnreachableError } from "#src/utils/errors";
 import { thePaginator } from "#src/utils/pagination";
-import { createGoogleClient, PAGE_SIZE } from "#src/youtube/google";
+import { createGoogleClientForSession, PAGE_SIZE } from "#src/youtube/google";
 
 export async function refreshUserSubscriptions(userId: string) {
     "use workflow";
@@ -29,21 +29,9 @@ export async function refreshSubscriptions(userId: string) {
         });
 
         const youtubeApi = youtube("v3");
-        const client = createGoogleClient();
-        client.setCredentials({
-            access_token: session.youtubeAccessToken,
-            refresh_token: session.youtubeRefreshToken,
-        });
+        const client = createGoogleClientForSession(session);
 
-        client.on("tokens", (tokens) => {
-            void prisma.session.update({
-                where: { token: session.token },
-                data: {
-                    youtubeAccessToken: tokens.access_token ?? undefined,
-                    youtubeRefreshToken: tokens.refresh_token ?? undefined,
-                },
-            });
-        });
+        const now = DateTime.now().toJSDate();
 
         const subscriptions = await thePaginator(async (cursor) => {
             const res = await youtubeApi.subscriptions.list({
@@ -65,22 +53,15 @@ export async function refreshSubscriptions(userId: string) {
             .filter((channelId) => channelId != null);
 
         const channelIdChunks = chunk(channelIds, PAGE_SIZE);
-        const channelChunks = await Promise.all(
-            channelIdChunks.map(async (channelIdChunk) => {
-                const res = await youtubeApi.channels.list({
-                    auth: client,
-                    maxResults: PAGE_SIZE,
-                    part: ["id", "snippet", "contentDetails"],
-                    id: channelIdChunk,
-                });
+        await asyncForEach(channelIdChunks, 10, async (channelIdChunk) => {
+            const res = await youtubeApi.channels.list({
+                auth: client,
+                maxResults: PAGE_SIZE,
+                part: ["id", "snippet", "contentDetails"],
+                id: channelIdChunk,
+            });
 
-                return res.data.items ?? [];
-            }),
-        );
-        const channels = channelChunks.flat();
-
-        await prisma.$transaction(async (tx) => {
-            const now = DateTime.now().toJSDate();
+            const channels = res.data.items ?? [];
 
             for (const channel of channels) {
                 if (
@@ -94,7 +75,7 @@ export async function refreshSubscriptions(userId: string) {
                     );
                 }
 
-                await tx.channel.upsert({
+                await prisma.channel.upsert({
                     where: { id: channel.id },
                     create: {
                         id: channel.id,
@@ -117,8 +98,19 @@ export async function refreshSubscriptions(userId: string) {
                     },
                 });
             }
+        });
 
-            await tx.subscription.deleteMany({ where: { userId } });
+        const subscriptionIds = subscriptions
+            .map((subscription) => subscription.id)
+            .filter((id) => id != null);
+
+        await prisma.$transaction(async (tx) => {
+            // delete any subscriptions which have been removed on yt
+            await tx.subscription.deleteMany({
+                where: { userId, id: { notIn: subscriptionIds } },
+            });
+
+            // create any new subscriptions (skipping over existing)
             await tx.subscription.createMany({
                 data: subscriptions.map((subscription) => {
                     const channelId =
@@ -135,6 +127,7 @@ export async function refreshSubscriptions(userId: string) {
                         raw: subscription as Prisma.JsonObject,
                     } satisfies Prisma.SubscriptionCreateManyInput;
                 }),
+                skipDuplicates: true,
             });
 
             await tx.user.update({
@@ -142,7 +135,9 @@ export async function refreshSubscriptions(userId: string) {
                 data: { lastRefreshedAt: now },
             });
         });
+
         await start(refreshChannelUploads, []);
+
         return session.user;
     } catch (error: unknown) {
         console.log("Something went wrong", error);
