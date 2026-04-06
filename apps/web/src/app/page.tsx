@@ -87,7 +87,9 @@ function VideoScreen() {
     );
 
     return (
-        <div className="box-content flex min-h-full flex-col items-center justify-start gap-8 pb-[100svh]">
+        <div
+            className={`box-content flex ${data === undefined ? "h-full" : ""} min-h-full flex-col items-center justify-start gap-8 pb-[100svh]`}
+        >
             <SubscriptionBar
                 selected={channelIds}
                 onClick={(channelId) => {
@@ -123,7 +125,7 @@ function VideoScreen() {
                 </button>
             </div>
             {data === undefined ? (
-                <div className="flex h-full -translate-y-16 items-center">
+                <div className="flex h-full -translate-y-36 flex-col justify-center">
                     <FiLoader size={30} className="animate-spin" />
                 </div>
             ) : (
