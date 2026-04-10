@@ -28,6 +28,7 @@ export async function refresh() {
     const channels = await prisma.channel.findMany({
         select: { id: true, uploadsPlaylistId: true, uploadsRefreshedAt: true },
         where: {
+            subscriptions: { some: {} },
             OR: [
                 { uploadsRefreshedAt: null },
                 {
