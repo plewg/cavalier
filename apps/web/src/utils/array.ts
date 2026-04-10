@@ -32,3 +32,7 @@ export async function asyncForEach<T>(
     // wait for remaining promises to finish
     await Promise.all(promises);
 }
+
+export function unique<T>(element: T, index: number, array: T[]) {
+    return array.indexOf(element) === index;
+}
