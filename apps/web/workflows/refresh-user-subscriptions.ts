@@ -1,13 +1,12 @@
-// import type { youtube_v3 } from "@googleapis/youtube";
 import { youtube } from "@googleapis/youtube";
 import type { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
 import { start } from "workflow/api";
 import { refreshChannelUploads } from "./refresh-channel-uploads";
 import { prisma } from "#src/db/prisma";
-import { asyncForEach, chunk } from "#src/utils/array";
 import { UnreachableError } from "#src/utils/errors";
 import { thePaginator } from "#src/utils/pagination";
+import { importChannels } from "#src/youtube/channel";
 import { createGoogleClientForSession, PAGE_SIZE } from "#src/youtube/google";
 
 export async function refreshUserSubscriptions(userId: string) {
@@ -28,14 +27,13 @@ export async function refreshSubscriptions(userId: string) {
             orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
         });
 
-        const youtubeApi = youtube("v3");
-        const client = createGoogleClientForSession(session);
+        const auth = createGoogleClientForSession(session);
+        const youtubeApi = youtube({ version: "v3", auth });
 
         const now = DateTime.now().toJSDate();
 
         const subscriptions = await thePaginator(async (cursor) => {
             const res = await youtubeApi.subscriptions.list({
-                auth: client,
                 maxResults: PAGE_SIZE,
                 mine: true,
                 pageToken: cursor,
@@ -52,53 +50,7 @@ export async function refreshSubscriptions(userId: string) {
             .map((subscription) => subscription.snippet?.resourceId?.channelId)
             .filter((channelId) => channelId != null);
 
-        const channelIdChunks = chunk(channelIds, PAGE_SIZE);
-        await asyncForEach(channelIdChunks, 10, async (channelIdChunk) => {
-            const res = await youtubeApi.channels.list({
-                auth: client,
-                maxResults: PAGE_SIZE,
-                part: ["id", "snippet", "contentDetails"],
-                id: channelIdChunk,
-            });
-
-            const channels = res.data.items ?? [];
-
-            for (const channel of channels) {
-                if (
-                    channel.id == null ||
-                    channel.snippet?.title == null ||
-                    channel.contentDetails?.relatedPlaylists?.uploads == null ||
-                    channel.snippet.thumbnails?.default?.url == null
-                ) {
-                    throw new UnreachableError(
-                        "required properties are missing",
-                    );
-                }
-
-                await prisma.channel.upsert({
-                    where: { id: channel.id },
-                    create: {
-                        id: channel.id,
-                        lastRefreshedAt: now,
-                        name: channel.snippet.title,
-                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                        raw: channel as Prisma.JsonObject,
-                        handle: channel.snippet.customUrl,
-                        uploadsPlaylistId:
-                            channel.contentDetails.relatedPlaylists.uploads,
-                        profilePictureUrl:
-                            channel.snippet.thumbnails.default.url,
-                    },
-                    update: {
-                        lastRefreshedAt: now,
-                        name: channel.snippet.title,
-                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                        raw: channel as Prisma.JsonObject,
-                        handle: channel.snippet.customUrl,
-                    },
-                });
-            }
-        });
+        await importChannels(youtubeApi, channelIds);
 
         const subscriptionIds = subscriptions
             .map((subscription) => subscription.id)

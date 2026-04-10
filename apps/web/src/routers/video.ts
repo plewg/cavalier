@@ -1,7 +1,11 @@
 import { youtube } from "@googleapis/youtube";
+import type { Prisma } from "@prisma/client";
 import z from "zod";
 import { createTrpcRouter, protectedProcedure } from "#src/trpc";
+import { asyncForEach, chunk, unique } from "#src/utils/array";
+import { importChannels } from "#src/youtube/channel";
 import { createGoogleClientForSession } from "#src/youtube/google";
+import { importVideos } from "#src/youtube/video";
 
 const PAGE_SIZE = 100;
 
@@ -74,15 +78,13 @@ export const videoRouter = createTrpcRouter({
         .input(z.object({ videoId: z.string(), save: z.boolean() }))
         .mutation(
             async ({ ctx: { session, prisma }, input: { videoId, save } }) => {
-                const client = createGoogleClientForSession(session);
-
                 if (save) {
-                    const youtubeApi = youtube("v3");
+                    const auth = createGoogleClientForSession(session);
+                    const youtubeApi = youtube({ version: "v3", auth });
 
                     console.log(`Saving video ${videoId} to watch later`);
 
                     await youtubeApi.playlistItems.insert({
-                        auth: client,
                         part: ["snippet"],
                         requestBody: {
                             snippet: {
@@ -105,4 +107,73 @@ export const videoRouter = createTrpcRouter({
                 });
             },
         ),
+    importWatchHistory: protectedProcedure
+        .input(
+            z.object({
+                videos: z.array(
+                    z.object({ channelId: z.string(), videoId: z.string() }),
+                ),
+            }),
+        )
+        .mutation(async ({ ctx, input }) => {
+            // TODO: move this to a workflow
+
+            const auth = createGoogleClientForSession(ctx.session);
+            const youtubeApi = youtube({ version: "v3", auth });
+
+            const uniqueChannelIds = input.videos
+                .map((v) => v.channelId)
+                .filter(unique);
+
+            console.debug({ uniqueChannelIds });
+
+            // query for existing channels
+            const existingChannels = await ctx.prisma.channel.findMany({
+                select: { id: true },
+                where: { id: { in: uniqueChannelIds } },
+            });
+            const existingChannelIds = new Set(
+                existingChannels.map((c) => c.id),
+            );
+            const newChannelIds = uniqueChannelIds.filter(
+                (channelId) => !existingChannelIds.has(channelId),
+            );
+
+            // import channels which don't yet exist
+            await importChannels(youtubeApi, newChannelIds);
+
+            // query for existing videos
+            const videoIds = input.videos.map((v) => v.videoId);
+            const existingVideos = await ctx.prisma.video.findMany({
+                select: { id: true },
+                where: { id: { in: videoIds } },
+            });
+            const existingVideoIds = new Set(existingVideos.map((v) => v.id));
+            const newVideoIds = videoIds.filter(
+                (videoId) => !existingVideoIds.has(videoId),
+            );
+
+            // import videos which don't yet exist
+            await importVideos(youtubeApi, newVideoIds);
+
+            // mark all user videos saved
+            const videoIdChunks = chunk(videoIds, 50);
+            await asyncForEach(videoIdChunks, 10, async (videoIds) => {
+                for (const videoId of videoIds) {
+                    const userVideo = {
+                        userId: ctx.session.userId,
+                        videoId,
+                        saved: true,
+                    } satisfies Prisma.UserVideoUncheckedUpdateInput;
+
+                    await ctx.prisma.userVideo.upsert({
+                        where: {
+                            userVideos: { userId: ctx.session.userId, videoId },
+                        },
+                        create: userVideo,
+                        update: userVideo,
+                    });
+                }
+            });
+        }),
 });
