@@ -154,10 +154,16 @@ export const videoRouter = createTrpcRouter({
             );
 
             // import videos which don't yet exist
-            await importVideos(youtubeApi, newVideoIds);
+            const importedVideoIds = await importVideos(
+                youtubeApi,
+                newVideoIds,
+            );
 
             // mark all user videos saved
-            const videoIdChunks = chunk(videoIds, 50);
+            const videoIdChunks = chunk(
+                [...existingVideoIds, ...importedVideoIds],
+                50,
+            );
             await asyncForEach(videoIdChunks, 10, async (videoIds) => {
                 for (const videoId of videoIds) {
                     const userVideo = {

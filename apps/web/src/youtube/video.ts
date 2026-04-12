@@ -2,7 +2,7 @@ import type { youtube_v3 } from "@googleapis/youtube";
 import type { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
 import { prisma } from "#src/db/prisma";
-import { asyncForEach, chunk } from "#src/utils/array";
+import { asyncMap, chunk } from "#src/utils/array";
 import { PAGE_SIZE, videoSchema } from "#src/youtube/google";
 
 export async function importVideos(
@@ -10,9 +10,7 @@ export async function importVideos(
     videoIds: string[],
 ) {
     const videoIdChunks = chunk(videoIds, PAGE_SIZE);
-    await asyncForEach(videoIdChunks, 10, async (videoIds) => {
-        // TODO: consider logging
-        // console.log(`[${channelId}] fetching video details`);
+    const videoChunks = await asyncMap(videoIdChunks, 10, async (videoIds) => {
         const now = DateTime.now().toJSDate();
 
         const res = await youtubeApi.videos.list({
@@ -48,5 +46,11 @@ export async function importVideos(
             }),
             skipDuplicates: true,
         });
+
+        return videos;
     });
+
+    return videoChunks
+        .flatMap((videos) => videos.map((video) => video.id))
+        .filter((id) => id != null);
 }
