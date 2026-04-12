@@ -177,7 +177,7 @@ model Playlist {
 }
 
 model PlaylistItem {
-    id        String   @id @db.VarChar(68) // TODO: What size?
+    id        String   @id @db.VarChar(68)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 

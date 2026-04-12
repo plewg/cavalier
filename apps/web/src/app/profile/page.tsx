@@ -106,12 +106,13 @@ export default function Profile() {
                     className={
                         importWatchHistory.isPending ? "animate-pulse" : ""
                     }
-                />{" "}
-                Import Watch History
+                />
+                <span>Import Watch History</span>
                 <input
                     className="hidden"
                     type="file"
                     accept="text/html"
+                    disabled={importWatchHistory.isPending}
                     onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file === undefined) {
