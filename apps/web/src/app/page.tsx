@@ -65,8 +65,9 @@ function VideoScreen() {
                 : undefined;
         },
     });
-    const { data, fetchNextPage, hasNextPage, isFetching } =
-        useInfiniteQuery(videoQueryOptions);
+    const videoFeed = useInfiniteQuery(videoQueryOptions);
+
+    const subscriptionList = useQuery(api.subscription.list.queryOptions());
 
     const { mutate: hideVideo } = useMutation(
         api.video.hide.mutationOptions({
@@ -97,110 +98,129 @@ function VideoScreen() {
 
     return (
         <div
-            className={`box-content flex ${data === undefined ? "h-full" : ""} min-h-full flex-col items-center justify-start gap-8 pb-[100svh]`}
+            className={`box-content flex ${videoFeed.data === undefined ? "h-full" : ""} min-h-full flex-col items-center justify-start gap-8 pb-[100svh]`}
         >
-            <SubscriptionBar
-                selected={channelIds}
-                onClick={(channelId) => {
-                    setChannelIds((prev) => {
-                        if (prev.includes(channelId)) {
-                            return prev.filter((id) => id !== channelId);
-                        } else {
-                            return [...prev, channelId];
-                        }
-                    });
-                }}
-            />
-            <div className="flex w-full max-w-[480] flex-row items-end justify-between gap-4 lg:w-[996] lg:max-w-full lg:items-center xl:w-[1248]">
-                <div className="flex w-full flex-col gap-4 lg:flex-row">
-                    <input
-                        className="w-full rounded-md px-2 py-1 text-slate-900"
-                        onChange={(event) => {
-                            setTitleFilter(event.target.value);
-                        }}
-                        type="text"
-                    />
-                    <div className="flex flex-row justify-start gap-4 lg:px-10">
-                        <button
-                            className={`flex justify-center rounded-md border-2 p-3 text-center ${showNew ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
-                            type="button"
-                            onClick={() => setShowNew((prev) => !prev)}
-                            title="Toggle showing new videos"
-                        >
-                            <FiPlus />
-                        </button>
-                        <button
-                            className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showSaved ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
-                            type="button"
-                            onClick={() => setShowSaved((prev) => !prev)}
-                            title="Toggle showing saved videos"
-                        >
-                            <FiCheck />
-                        </button>
-                        <button
-                            className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showHidden ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
-                            type="button"
-                            onClick={() => setShowHidden((prev) => !prev)}
-                            title="Toggle showing hidden videos"
-                        >
-                            <FiEyeOff />
-                        </button>
-                    </div>
-                </div>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setSortDirection(
-                            sortDirection === "asc" ? "desc" : "asc",
-                        );
-                    }}
-                    className="flex justify-center rounded-md border-2 border-gray-600 p-3 text-center"
-                >
-                    {sortDirection === "asc" ? <FiArrowUp /> : <FiArrowDown />}
-                </button>
-            </div>
-            {data === undefined ? (
-                <div className="flex h-full -translate-y-36 flex-col justify-center">
+            {subscriptionList.isPending ||
+            subscriptionList.data === undefined ? (
+                <div className="flex h-full w-full -translate-y-36 flex-col items-center justify-center">
                     <FiLoader size={30} className="animate-spin" />
                 </div>
             ) : (
-                <div className="mx-auto flex w-full max-w-[480] flex-col items-center gap-3 lg:w-[996] lg:max-w-max xl:w-[1248]">
-                    <div className="grid w-full max-w-7xl grid-cols-1 gap-3 gap-y-8 lg:grid-cols-4 xl:grid-cols-5">
-                        {data.pages.map(({ videos }) => {
-                            return videos.map((video) => {
-                                return (
-                                    <VideoTile
-                                        key={video.id}
-                                        video={video}
-                                        onClick={(
-                                            video: Video,
-                                            save: boolean,
-                                        ) => {
-                                            hideVideo({
-                                                videoId: video.id,
-                                                save,
-                                            });
-                                        }}
-                                    />
-                                );
+                <>
+                    <SubscriptionBar
+                        selected={channelIds}
+                        onClick={(channelId) => {
+                            setChannelIds((prev) => {
+                                if (prev.includes(channelId)) {
+                                    return prev.filter(
+                                        (id) => id !== channelId,
+                                    );
+                                } else {
+                                    return [...prev, channelId];
+                                }
                             });
-                        })}
-                        {hasNextPage ? (
+                        }}
+                        subscriptions={subscriptionList.data.subscriptions}
+                    />
+                    <div className="flex w-full max-w-[480] flex-row flex-wrap justify-between gap-4 lg:w-[996] lg:max-w-full lg:flex-nowrap xl:w-[1248]">
+                        <input
+                            className="h-11 basis-full rounded-md px-2 py-1 text-slate-900 lg:w-full"
+                            onChange={(event) => {
+                                setTitleFilter(event.target.value);
+                            }}
+                            type="text"
+                        />
+                        <div className="flex flex-row justify-start gap-4 lg:px-10">
                             <button
+                                className={`flex justify-center rounded-md border-2 p-3 text-center ${showNew ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
                                 type="button"
-                                disabled={isFetching}
-                                onClick={() => void fetchNextPage()}
-                                className="aspect-video w-full max-w-[480] rounded-md border-2 border-gray-600 bg-gray-800 p-3 lg:w-[240]"
+                                onClick={() => setShowNew((prev) => !prev)}
+                                title="Toggle showing new videos"
                             >
-                                Load More
+                                <FiPlus />
                             </button>
-                        ) : (
-                            <div className="flex aspect-video w-full max-w-[480] items-center justify-center rounded-md border-2 border-gray-600 bg-gray-800 p-3 lg:w-[240]">
-                                Congratulations!
-                            </div>
-                        )}
+                            <button
+                                className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showSaved ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
+                                type="button"
+                                onClick={() => setShowSaved((prev) => !prev)}
+                                title="Toggle showing saved videos"
+                            >
+                                <FiCheck />
+                            </button>
+                            <button
+                                className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showHidden ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
+                                type="button"
+                                onClick={() => setShowHidden((prev) => !prev)}
+                                title="Toggle showing hidden videos"
+                            >
+                                <FiEyeOff />
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setSortDirection(
+                                    sortDirection === "asc" ? "desc" : "asc",
+                                );
+                            }}
+                            className="flex justify-center rounded-md border-2 border-gray-600 p-3 text-center"
+                        >
+                            {sortDirection === "asc" ? (
+                                <FiArrowUp />
+                            ) : (
+                                <FiArrowDown />
+                            )}
+                        </button>
                     </div>
-                </div>
+                    {videoFeed.data === undefined ? (
+                        <div className="flex h-full w-full -translate-y-36 flex-col items-center justify-center">
+                            <FiLoader
+                                size={30}
+                                className="anim-translate-y-36 ate-spin"
+                            />
+                        </div>
+                    ) : (
+                        <div className="mx-auto flex w-full max-w-[480] flex-col items-center gap-3 lg:w-[996] lg:max-w-max xl:w-[1248]">
+                            <div className="grid w-full max-w-7xl grid-cols-1 gap-3 gap-y-8 lg:grid-cols-4 xl:grid-cols-5">
+                                {videoFeed.data.pages.map(({ videos }) => {
+                                    return videos.map((video) => {
+                                        return (
+                                            <VideoTile
+                                                key={video.id}
+                                                video={video}
+                                                onClick={(
+                                                    video: Video,
+                                                    save: boolean,
+                                                ) => {
+                                                    hideVideo({
+                                                        videoId: video.id,
+                                                        save,
+                                                    });
+                                                }}
+                                            />
+                                        );
+                                    });
+                                })}
+                                {videoFeed.hasNextPage ? (
+                                    <button
+                                        type="button"
+                                        disabled={videoFeed.isFetching}
+                                        onClick={() =>
+                                            void videoFeed.fetchNextPage()
+                                        }
+                                        className="aspect-video w-full max-w-[480] rounded-md border-2 border-gray-600 bg-gray-800 p-3 lg:w-[240]"
+                                    >
+                                        Load More
+                                    </button>
+                                ) : (
+                                    <div className="flex aspect-video w-full max-w-[480] items-center justify-center rounded-md border-2 border-gray-600 bg-gray-800 p-3 lg:w-[240]">
+                                        Congratulations!
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );
@@ -297,12 +317,15 @@ function VideoTile({ video, onClick }: VideoTileProps) {
 interface SubscriptionBarProps {
     onClick: (channelId: string) => void;
     selected: string[];
+    subscriptions: RouterOutputs["subscription"]["list"]["subscriptions"];
 }
 
-function SubscriptionBar({ onClick, selected }: SubscriptionBarProps) {
+function SubscriptionBar({
+    onClick,
+    selected,
+    subscriptions,
+}: SubscriptionBarProps) {
     const [isExpanded, setIsExpanded] = useState(false);
-    const api = useTrpc();
-    const { data } = useQuery(api.subscription.list.queryOptions());
     const [divRef, setDivRef] = useState<HTMLDivElement | null>(null);
     const [canExpand, setCanExpand] = useState(false);
 
@@ -323,10 +346,6 @@ function SubscriptionBar({ onClick, selected }: SubscriptionBarProps) {
         };
     }, [divRef]);
 
-    if (data === undefined) {
-        return null;
-    }
-
     return (
         <div className="flex flex-col items-center gap-2">
             <div
@@ -339,7 +358,7 @@ function SubscriptionBar({ onClick, selected }: SubscriptionBarProps) {
                 }}
                 className={`${isExpanded || !canExpand ? "h-auto" : "h-16 overflow-hidden"} flex w-full flex-row flex-wrap justify-center gap-1 bg-gradient-to-b from-indigo-50 to-transparent bg-clip-text text-transparent`}
             >
-                {data.subscriptions.map((subscription) => (
+                {subscriptions.map((subscription) => (
                     <img
                         title={subscription.channel.name}
                         onClick={() => {

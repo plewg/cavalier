@@ -62,9 +62,7 @@ export const videoRouter = createTrpcRouter({
                     OR: [
                         {
                             userVideos: filters.showNew
-                                ? {
-                                      none: { userId: ctx.session.userId },
-                                  }
+                                ? { none: { userId: ctx.session.userId } }
                                 : undefined,
                         },
                         {
