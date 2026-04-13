@@ -19,7 +19,7 @@ import {
     FiPlus,
 } from "react-icons/fi";
 import { SessionContext } from "#src/providers/session";
-import type { RouterInputs, RouterOutputs } from "#src/routers/root";
+import type { RouterOutputs } from "#src/routers/root";
 import { useTrpc } from "#src/trpc/react";
 import { useDebounce } from "#src/utils/debounce";
 import { UnreachableError } from "#src/utils/errors";
@@ -45,36 +45,38 @@ function VideoScreen() {
     const api = useTrpc();
     const queryClient = useQueryClient();
 
-    const queryParams = {
-        sortDirection,
-        filters: {
-            channelIds: channelIds.length > 0 ? channelIds : undefined,
-            title: titleFilter.length > 0 ? titleFilter : undefined,
-            showNew,
-            showSaved,
-            showHidden,
+    const videoQueryOptions = api.video.feed.infiniteQueryOptions(
+        {
+            sortDirection,
+            filters: {
+                channelIds: channelIds.length > 0 ? channelIds : undefined,
+                title: titleFilter.length > 0 ? titleFilter : undefined,
+                showNew,
+                showSaved,
+                showHidden,
+            },
         },
-    } satisfies RouterInputs["video"]["feed"];
-    const videoQueryKey = api.video.feed.infiniteQueryKey(queryParams);
-    const videoQueryOptions = api.video.feed.infiniteQueryOptions(queryParams, {
-        getNextPageParam: (lastPage) => {
-            return lastPage.nextCursor !== undefined
-                ? {
-                      id: lastPage.nextCursor,
-                  }
-                : undefined;
+        {
+            getNextPageParam: (lastPage) => {
+                return lastPage.nextCursor !== undefined
+                    ? {
+                          id: lastPage.nextCursor,
+                      }
+                    : undefined;
+            },
         },
-    });
+    );
     const videoFeed = useInfiniteQuery(videoQueryOptions);
-
     const subscriptionList = useQuery(api.subscription.list.queryOptions());
 
     const { mutate: hideVideo } = useMutation(
         api.video.hide.mutationOptions({
             async onMutate({ videoId }) {
-                await queryClient.cancelQueries({ queryKey: videoQueryKey });
+                await queryClient.cancelQueries({
+                    queryKey: videoQueryOptions.queryKey,
+                });
 
-                queryClient.setQueryData(videoQueryKey, (old) => {
+                queryClient.setQueryData(videoQueryOptions.queryKey, (old) => {
                     if (old === undefined) {
                         throw new UnreachableError(
                             "Somehow there aint shit here",
