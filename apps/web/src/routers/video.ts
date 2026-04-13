@@ -20,6 +20,9 @@ export const videoRouter = createTrpcRouter({
                         .object({
                             channelIds: z.array(z.string()).optional(),
                             title: z.string().optional(),
+                            showNew: z.boolean().default(true),
+                            showSaved: z.boolean().default(false),
+                            showHidden: z.boolean().default(false),
                         })
                         .default({}),
                 })
@@ -56,9 +59,35 @@ export const videoRouter = createTrpcRouter({
                         },
                         id: { in: filters.channelIds },
                     },
-                    userVideos: {
-                        none: { userId: ctx.session.userId },
-                    },
+                    OR: [
+                        {
+                            userVideos: filters.showNew
+                                ? {
+                                      none: { userId: ctx.session.userId },
+                                  }
+                                : undefined,
+                        },
+                        {
+                            userVideos: filters.showSaved
+                                ? {
+                                      some: {
+                                          userId: ctx.session.userId,
+                                          saved: true,
+                                      },
+                                  }
+                                : undefined,
+                        },
+                        {
+                            userVideos: filters.showHidden
+                                ? {
+                                      some: {
+                                          userId: ctx.session.userId,
+                                          saved: false,
+                                      },
+                                  }
+                                : undefined,
+                        },
+                    ],
                 },
                 orderBy: [{ publishedAt: sortDirection }, { id: "asc" }],
             });

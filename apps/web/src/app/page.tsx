@@ -11,12 +11,14 @@ import { useContext, useEffect, useState } from "react";
 import {
     FiArrowDown,
     FiArrowUp,
+    FiCheck,
     FiChevronDown,
     FiChevronUp,
+    FiEyeOff,
     FiLoader,
 } from "react-icons/fi";
 import { SessionContext } from "#src/providers/session";
-import type { RouterOutputs } from "#src/routers/root";
+import type { RouterInputs, RouterOutputs } from "#src/routers/root";
 import { useTrpc } from "#src/trpc/react";
 import { useDebounce } from "#src/utils/debounce";
 import { UnreachableError } from "#src/utils/errors";
@@ -35,6 +37,9 @@ function VideoScreen() {
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const [channelIds, setChannelIds] = useState<string[]>([]);
     const [titleFilter, setTitleFilter] = useDebounce(300, "");
+    const [showNew, setShowNew] = useState(true);
+    const [showSaved, setShowSaved] = useState(false);
+    const [showHidden, setShowHidden] = useState(false);
 
     const api = useTrpc();
     const queryClient = useQueryClient();
@@ -44,8 +49,11 @@ function VideoScreen() {
         filters: {
             channelIds: channelIds.length > 0 ? channelIds : undefined,
             title: titleFilter.length > 0 ? titleFilter : undefined,
+            showNew,
+            showSaved,
+            showHidden,
         },
-    };
+    } satisfies RouterInputs["video"]["feed"];
     const videoQueryKey = api.video.feed.infiniteQueryKey(queryParams);
     const videoQueryOptions = api.video.feed.infiniteQueryOptions(queryParams, {
         getNextPageParam: (lastPage) => {
@@ -102,8 +110,8 @@ function VideoScreen() {
                     });
                 }}
             />
-            <div className="flex w-full max-w-[480] flex-row items-center justify-between lg:w-[996] lg:max-w-full xl:w-[1248]">
-                <div className="flex">
+            <div className="flex w-full max-w-[480] flex-row items-start justify-between lg:w-[996] lg:max-w-full lg:items-center xl:w-[1248]">
+                <div className="flex flex-col gap-4 lg:flex-row">
                     <input
                         className="rounded-md px-2 py-1 text-slate-900"
                         onChange={(event) => {
@@ -111,6 +119,29 @@ function VideoScreen() {
                         }}
                         type="text"
                     />
+                    <div className="flex flex-row justify-start gap-4">
+                        <button
+                            className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showNew ? "bg-gray-600" : "bg-gray-900"}`}
+                            type="button"
+                            onClick={() => setShowNew((prev) => !prev)}
+                        >
+                            <FiLoader />
+                        </button>
+                        <button
+                            className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showSaved ? "bg-gray-600" : "bg-gray-900"}`}
+                            type="button"
+                            onClick={() => setShowSaved((prev) => !prev)}
+                        >
+                            <FiCheck />
+                        </button>
+                        <button
+                            className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showHidden ? "bg-gray-600" : "bg-gray-900"}`}
+                            type="button"
+                            onClick={() => setShowHidden((prev) => !prev)}
+                        >
+                            <FiEyeOff />
+                        </button>
+                    </div>
                 </div>
                 <button
                     type="button"
