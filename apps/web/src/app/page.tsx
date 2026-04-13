@@ -16,6 +16,7 @@ import {
     FiChevronUp,
     FiEyeOff,
     FiLoader,
+    FiPlus,
 } from "react-icons/fi";
 import { SessionContext } from "#src/providers/session";
 import type { RouterInputs, RouterOutputs } from "#src/routers/root";
@@ -110,34 +111,37 @@ function VideoScreen() {
                     });
                 }}
             />
-            <div className="flex w-full max-w-[480] flex-row items-start justify-between lg:w-[996] lg:max-w-full lg:items-center xl:w-[1248]">
-                <div className="flex flex-col gap-4 lg:flex-row">
+            <div className="flex w-full max-w-[480] flex-row items-end justify-between gap-4 lg:w-[996] lg:max-w-full lg:items-center xl:w-[1248]">
+                <div className="flex w-full flex-col gap-4 lg:flex-row">
                     <input
-                        className="rounded-md px-2 py-1 text-slate-900"
+                        className="w-full rounded-md px-2 py-1 text-slate-900"
                         onChange={(event) => {
                             setTitleFilter(event.target.value);
                         }}
                         type="text"
                     />
-                    <div className="flex flex-row justify-start gap-4">
+                    <div className="flex flex-row justify-start gap-4 lg:px-10">
                         <button
-                            className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showNew ? "bg-gray-600" : "bg-gray-900"}`}
+                            className={`flex justify-center rounded-md border-2 p-3 text-center ${showNew ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
                             type="button"
                             onClick={() => setShowNew((prev) => !prev)}
+                            title="Toggle showing new videos"
                         >
-                            <FiLoader />
+                            <FiPlus />
                         </button>
                         <button
-                            className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showSaved ? "bg-gray-600" : "bg-gray-900"}`}
+                            className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showSaved ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
                             type="button"
                             onClick={() => setShowSaved((prev) => !prev)}
+                            title="Toggle showing saved videos"
                         >
                             <FiCheck />
                         </button>
                         <button
-                            className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showHidden ? "bg-gray-600" : "bg-gray-900"}`}
+                            className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showHidden ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
                             type="button"
                             onClick={() => setShowHidden((prev) => !prev)}
+                            title="Toggle showing hidden videos"
                         >
                             <FiEyeOff />
                         </button>
