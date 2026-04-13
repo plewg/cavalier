@@ -116,7 +116,7 @@ model Video {
     publishedAt          DateTime
     // thumbnailAspectRatio String // What data type?
     thumbnailUrl         String
-    title                String               @db.VarChar(100)
+    title                String
     uploadStatus         UploadStatus
     lastRefreshedAt      DateTime
     raw                  Json
