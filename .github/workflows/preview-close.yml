@@ -5,6 +5,7 @@ on:
       - main
     types:
       - closed
+      - converted_to_draft
 concurrency:
   group: preview-${{ github.ref }}
   cancel-in-progress: true
