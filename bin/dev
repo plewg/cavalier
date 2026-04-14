@@ -89,6 +89,9 @@ dev::setup() {
 }
 
 dev::reset() {
+    echo '==> resetting db'
+    dev::db::load::local
+
     echo '==> stop db'
     dev::stop
 
@@ -109,14 +112,12 @@ dev::start() {
     # start db
     dev::db::up
 
-    dev::db::load::local
-
     # run dev
     turbo dev
 }
 
 dev::stop() {
-    docker compose down -v
+    docker compose down
 }
 
 dev::lint() {
@@ -158,19 +159,19 @@ dev::db::dump::local() {
 }
 
 dev::db::load::local() {
+    docker compose down -v
     dev::db::up
 
     gunzip --keep --force db_dump_local.sql.gz
-    echo "Restoring DB"
     psql "$DATABASE_URL" < db_dump_local.sql > /dev/null 2>&1
 }
 
 dev::db::load::prod() {
-    read -p "Loading DB dumb to prod. Are you sure? [yn]: " -n 1 -r
+    read -p "Loading db dump to prod. Are you sure? [yn]: " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         gunzip --keep --force db_dump_local.sql.gz
-        echo "Restoring DB to prod"
+        echo "Restoring db to prod"
         psql "$(neonctl connection-string 'production' --database-name 'cavalier')" < db_dump_local.sql
     fi
 }
