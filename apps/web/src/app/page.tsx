@@ -142,7 +142,7 @@ function VideoScreen() {
                                 <FiPlus />
                             </button>
                             <button
-                                className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showSaved ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
+                                className={`flex justify-center rounded-md border-2 p-3 text-center ${showSaved ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
                                 type="button"
                                 onClick={() => setShowSaved((prev) => !prev)}
                                 title="Toggle showing saved videos"
@@ -150,7 +150,7 @@ function VideoScreen() {
                                 <FiCheck />
                             </button>
                             <button
-                                className={`flex justify-center rounded-md border-2 border-gray-600 p-3 text-center ${showHidden ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
+                                className={`flex justify-center rounded-md border-2 p-3 text-center ${showHidden ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
                                 type="button"
                                 onClick={() => setShowHidden((prev) => !prev)}
                                 title="Toggle showing hidden videos"
