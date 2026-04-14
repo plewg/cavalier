@@ -47,6 +47,11 @@ export const videoRouter = createTrpcRouter({
                             raw: true,
                         },
                     },
+                    userVideos: {
+                        where: {
+                            userId: ctx.session.userId,
+                        },
+                    },
                 },
                 where: {
                     title: {
@@ -99,7 +104,20 @@ export const videoRouter = createTrpcRouter({
             // creating an infinite loop, albeit one dependent on user action).
             const nextCursor = videos[pageSize]?.id;
 
-            return { videos: videos.slice(0, pageSize), nextCursor };
+            const responseVideos = videos.map((video) => {
+                const userVideo = video.userVideos[0];
+
+                return {
+                    id: video.id,
+                    thumbnailUrl: video.thumbnailUrl,
+                    channel: video.channel,
+                    title: video.title,
+                    duration: video.duration,
+                    userVideo,
+                };
+            });
+
+            return { videos: responseVideos.slice(0, pageSize), nextCursor };
         }),
     hide: protectedProcedure
         .input(z.object({ videoId: z.string(), save: z.boolean() }))
@@ -125,11 +143,20 @@ export const videoRouter = createTrpcRouter({
                     });
                 }
 
-                await prisma.userVideo.create({
-                    data: {
-                        videoId,
-                        saved: save,
-                        userId: session.userId,
+                const data = {
+                    videoId,
+                    saved: save,
+                    userId: session.userId,
+                } satisfies Prisma.UserVideoUncheckedUpdateInput;
+
+                await prisma.userVideo.upsert({
+                    create: data,
+                    update: data,
+                    where: {
+                        userVideos: {
+                            videoId,
+                            userId: session.userId,
+                        },
                     },
                 });
             },
