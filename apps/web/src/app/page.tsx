@@ -246,17 +246,43 @@ function VideoTile({ video, onClick }: VideoTileProps) {
             ? videoDuration.toFormat("h:mm:ss")
             : videoDuration.toFormat("m:ss");
 
+    const saved = video.userVideo?.saved === true;
+    const hidden = video.userVideo?.saved === false;
+
     return (
         <div
             key={video.id}
             className="flex w-full max-w-[480] flex-col gap-2 lg:w-[240]"
         >
             <div className="relative flex">
-                {Boolean(duration) && (
-                    <div className="absolute bottom-1 right-1 rounded bg-black px-1 text-sm">
-                        {duration}
-                    </div>
-                )}
+                <div className="relative overflow-clip rounded-md">
+                    <img
+                        className="aspect-video w-full object-cover"
+                        src={video.thumbnailUrl}
+                    />
+                    {saved || hidden ? (
+                        <div className="absolute top-0 h-full w-full">
+                            <div
+                                style={{
+                                    clipPath: "polygon(0 0, 100% 100%, 100% 0)",
+                                    height: "40%",
+                                }}
+                                className={`flex items-start justify-end ${saved ? "bg-green-600" : "bg-red-600"} absolute right-0 top-0 aspect-square -translate-y-1 translate-x-1 p-4 sm:p-5 lg:p-[10]`}
+                            >
+                                {saved ? (
+                                    <FiCheck className="text-lg sm:text-3xl lg:text-base" />
+                                ) : null}
+                                {hidden ? (
+                                    <FiEyeOff className="text-lg sm:text-3xl lg:text-base" />
+                                ) : null}
+                            </div>
+                        </div>
+                    ) : undefined}
+                </div>
+
+                <div className="absolute bottom-1 right-1 rounded bg-black px-1 text-sm">
+                    {duration}
+                </div>
 
                 <div className="absolute flex h-full w-full flex-row opacity-0 hover:opacity-30">
                     <button
@@ -265,24 +291,15 @@ function VideoTile({ video, onClick }: VideoTileProps) {
                             onClick(video, false);
                         }}
                         className="flex-grow rounded-l-md bg-red-800 text-red-800"
-                    >
-                        rip bozo
-                    </button>
+                    />
                     <button
                         type="button"
                         onClick={() => {
                             onClick(video, true);
                         }}
                         className="flex-grow rounded-r-md bg-green-800 text-green-800"
-                    >
-                        yep sir
-                    </button>
+                    />
                 </div>
-
-                <img
-                    className="aspect-video w-full rounded-md object-cover"
-                    src={video.thumbnailUrl}
-                />
             </div>
             <div className="flex flex-row items-start">
                 <a href={channelUrl} className="flex flex-row items-center">
