@@ -9,7 +9,6 @@ import { importVideos } from "#src/youtube/video";
 
 const pageSize = 100;
 const videoStates = ["new", "hidden", "saved"] as const;
-export type VideoState = (typeof videoStates)[number];
 
 export const videoRouter = createTrpcRouter({
     feed: protectedProcedure

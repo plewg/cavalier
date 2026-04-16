@@ -18,12 +18,13 @@ import {
     FiLoader,
     FiPlus,
 } from "react-icons/fi";
+import { z } from "zod";
 import { SessionContext } from "#src/providers/session";
 import type { RouterOutputs } from "#src/routers/root";
-import type { VideoState } from "#src/routers/video";
 import { useTrpc } from "#src/trpc/react";
-import { useDebounce } from "#src/utils/debounce";
 import { UnreachableError } from "#src/utils/errors";
+import { useDebounce } from "#src/utils/use-debounce";
+import { useQueryParamState } from "#src/utils/use-query-param-state";
 
 export default function Home() {
     const session = useContext(SessionContext);
@@ -36,10 +37,31 @@ export default function Home() {
 }
 
 function VideoScreen() {
-    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-    const [channelIds, setChannelIds] = useState<string[]>([]);
-    const [titleFilter, setTitleFilter] = useDebounce(300, "");
-    const [videoState, setVideoState] = useState<VideoState>("new");
+    const [sortDirection, setSortDirection] = useQueryParamState(
+        "sort",
+        z.enum(["asc", "desc"]),
+        "asc",
+    );
+    const [channelIds, setChannelIds] = useQueryParamState<string[]>(
+        "channels",
+        z.array(z.string()),
+        [],
+    );
+    const [videoState, setVideoState] = useQueryParamState(
+        "state",
+        z.enum(["new", "hidden", "saved"]),
+        "new",
+    );
+
+    // The query param state is used to control the input, the URL, and the
+    // initial filter state, but is not used for the filter directly, so that
+    // we can debounce that separately
+    const [urlTitleFilter, setUrlTitleFilter] = useQueryParamState(
+        "title",
+        z.string(),
+        "",
+    );
+    const [titleFilter, setTitleFilter] = useDebounce(300, urlTitleFilter);
 
     const api = useTrpc();
     const queryClient = useQueryClient();
@@ -123,8 +145,10 @@ function VideoScreen() {
                         <input
                             className="h-11 basis-full rounded-md px-2 py-1 text-slate-900 lg:w-full"
                             onChange={(event) => {
+                                setUrlTitleFilter(event.target.value);
                                 setTitleFilter(event.target.value);
                             }}
+                            value={urlTitleFilter}
                             type="text"
                         />
                         <div className="flex flex-row justify-start gap-4 lg:px-10">
@@ -305,6 +329,7 @@ function VideoTile({ video, onClick }: VideoTileProps) {
                 </a>
                 <div className="flex flex-col items-start px-2">
                     <a
+                        style={{ wordBreak: "break-word" }}
                         href={`https://www.youtube.com/watch?v=${video.id}`}
                         className="line-clamp-2"
                         target="_blank"
@@ -314,6 +339,7 @@ function VideoTile({ video, onClick }: VideoTileProps) {
                         {video.title}
                     </a>
                     <a
+                        style={{ wordBreak: "break-word" }}
                         href={channelUrl}
                         className="line-clamp-1 items-center text-gray-400"
                         target="_blank"
