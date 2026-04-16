@@ -4,19 +4,19 @@ import { DateTime } from "luxon";
 import { prisma } from "#src/db/prisma";
 import { asyncForEach, chunk } from "#src/utils/array";
 import { UnreachableError } from "#src/utils/errors";
-import { PAGE_SIZE } from "#src/youtube/google";
+import { pageSize } from "#src/youtube/google";
 
 export async function importChannels(
     youtubeApi: youtube_v3.Youtube,
     channelIds: string[],
 ) {
-    const channelIdChunks = chunk(channelIds, PAGE_SIZE);
+    const channelIdChunks = chunk(channelIds, pageSize);
 
     await asyncForEach(channelIdChunks, 10, async (channelIdChunk) => {
         const now = DateTime.now().toJSDate();
 
         const res = await youtubeApi.channels.list({
-            maxResults: PAGE_SIZE,
+            maxResults: pageSize,
             part: ["id", "snippet", "contentDetails"],
             id: channelIdChunk,
         });
