@@ -17,7 +17,7 @@ import {
     idTokenSchema,
     tokensSchema,
     createGoogleClient,
-    PAGE_SIZE,
+    pageSize,
 } from "#src/youtube/google";
 import { refreshUserSubscriptions } from "workflows/refresh-user-subscriptions";
 
@@ -94,7 +94,7 @@ async function createWatchLaterPlaylist(
             mine: true,
             auth: client,
             part: ["snippet"],
-            maxResults: PAGE_SIZE,
+            maxResults: pageSize,
             pageToken: cursor,
         });
 

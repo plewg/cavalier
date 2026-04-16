@@ -7,7 +7,7 @@ import { importChannels } from "#src/youtube/channel";
 import { createGoogleClientForSession } from "#src/youtube/google";
 import { importVideos } from "#src/youtube/video";
 
-const PAGE_SIZE = 100;
+const pageSize = 100;
 
 export const videoRouter = createTrpcRouter({
     feed: protectedProcedure
@@ -36,7 +36,7 @@ export const videoRouter = createTrpcRouter({
                 // We fetch one extra here so that we can use it to grab the
                 // cursor for the next page, then we remove it from the payload
                 // sent to the client.
-                take: PAGE_SIZE + 1,
+                take: pageSize + 1,
                 cursor,
                 omit: {
                     raw: true,
@@ -90,16 +90,16 @@ export const videoRouter = createTrpcRouter({
                 orderBy: [{ publishedAt: sortDirection }, { id: "asc" }],
             });
 
-            // We grab the item at PAGE_SIZE index, rather than the item at the
+            // We grab the item at pageSize index, rather than the item at the
             // last index, because the final page may not be a full page, and we
             // want to return `undefined` in that case to indicate that there is
             // not an additional page. If we instead grabbed the last item it
             // would incorrectly provide a cursor for another page that contains
             // only that final video, and the same cursor (theoretically
             // creating an infinite loop, albeit one dependent on user action).
-            const nextCursor = videos[PAGE_SIZE]?.id;
+            const nextCursor = videos[pageSize]?.id;
 
-            return { videos: videos.slice(0, PAGE_SIZE), nextCursor };
+            return { videos: videos.slice(0, pageSize), nextCursor };
         }),
     hide: protectedProcedure
         .input(z.object({ videoId: z.string(), save: z.boolean() }))

@@ -9,7 +9,7 @@ import { z } from "zod";
 import { prisma } from "#src/db/prisma";
 import { env } from "#src/env";
 
-export const PAGE_SIZE = 50;
+export const pageSize = 50;
 
 export const idTokenSchema = z.object({ sub: z.string() });
 export const tokensSchema = z.object({

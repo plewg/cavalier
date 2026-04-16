@@ -5,7 +5,7 @@ import { DateTime } from "luxon";
 import { prisma } from "#src/db/prisma";
 import { isErrorWithCode, UnreachableError } from "#src/utils/errors";
 import { thePaginator } from "#src/utils/pagination";
-import { createGoogleClient, PAGE_SIZE } from "#src/youtube/google";
+import { createGoogleClient, pageSize } from "#src/youtube/google";
 import { importVideos } from "#src/youtube/video";
 
 export async function refreshChannelUploads() {
@@ -85,7 +85,7 @@ async function fetchUploadsPlaylistItems(
                 playlistId: channel.uploadsPlaylistId.replace(/^UU/u, "UULF"),
                 part: ["id", "snippet", "contentDetails"],
                 pageToken: cursor,
-                maxResults: PAGE_SIZE,
+                maxResults: pageSize,
             });
 
             const items = res.data.items ?? [];

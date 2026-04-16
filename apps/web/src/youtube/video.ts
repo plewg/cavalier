@@ -3,20 +3,20 @@ import type { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
 import { prisma } from "#src/db/prisma";
 import { asyncMap, chunk } from "#src/utils/array";
-import { PAGE_SIZE, videoSchema } from "#src/youtube/google";
+import { pageSize, videoSchema } from "#src/youtube/google";
 
 export async function importVideos(
     youtubeApi: youtube_v3.Youtube,
     videoIds: string[],
 ) {
-    const videoIdChunks = chunk(videoIds, PAGE_SIZE);
+    const videoIdChunks = chunk(videoIds, pageSize);
     const videoChunks = await asyncMap(videoIdChunks, 10, async (videoIds) => {
         const now = DateTime.now().toJSDate();
 
         const res = await youtubeApi.videos.list({
             id: videoIds,
             part: ["id", "snippet", "contentDetails", "status"],
-            maxResults: PAGE_SIZE,
+            maxResults: pageSize,
         });
 
         const videos = res.data.items ?? [];

@@ -7,7 +7,7 @@ import { prisma } from "#src/db/prisma";
 import { UnreachableError } from "#src/utils/errors";
 import { thePaginator } from "#src/utils/pagination";
 import { importChannels } from "#src/youtube/channel";
-import { createGoogleClientForSession, PAGE_SIZE } from "#src/youtube/google";
+import { createGoogleClientForSession, pageSize } from "#src/youtube/google";
 
 export async function refreshUserSubscriptions(userId: string) {
     "use workflow";
@@ -34,7 +34,7 @@ export async function refreshSubscriptions(userId: string) {
 
         const subscriptions = await thePaginator(async (cursor) => {
             const res = await youtubeApi.subscriptions.list({
-                maxResults: PAGE_SIZE,
+                maxResults: pageSize,
                 mine: true,
                 pageToken: cursor,
                 part: ["id", "snippet"],
