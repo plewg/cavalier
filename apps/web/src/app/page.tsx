@@ -20,6 +20,7 @@ import {
 } from "react-icons/fi";
 import { SessionContext } from "#src/providers/session";
 import type { RouterOutputs } from "#src/routers/root";
+import type { VideoState } from "#src/routers/video";
 import { useTrpc } from "#src/trpc/react";
 import { useDebounce } from "#src/utils/debounce";
 import { UnreachableError } from "#src/utils/errors";
@@ -38,9 +39,7 @@ function VideoScreen() {
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const [channelIds, setChannelIds] = useState<string[]>([]);
     const [titleFilter, setTitleFilter] = useDebounce(300, "");
-    const [showNew, setShowNew] = useState(true);
-    const [showSaved, setShowSaved] = useState(false);
-    const [showHidden, setShowHidden] = useState(false);
+    const [videoState, setVideoState] = useState<VideoState>("new");
 
     const api = useTrpc();
     const queryClient = useQueryClient();
@@ -48,13 +47,9 @@ function VideoScreen() {
     const videoQueryOptions = api.video.feed.infiniteQueryOptions(
         {
             sortDirection,
-            filters: {
-                channelIds: channelIds.length > 0 ? channelIds : undefined,
-                title: titleFilter.length > 0 ? titleFilter : undefined,
-                showNew,
-                showSaved,
-                showHidden,
-            },
+            channelIds: channelIds.length > 0 ? channelIds : undefined,
+            title: titleFilter,
+            videoState,
         },
         {
             getNextPageParam: (lastPage) => {
@@ -134,26 +129,26 @@ function VideoScreen() {
                         />
                         <div className="flex flex-row justify-start gap-4 lg:px-10">
                             <button
-                                className={`flex justify-center rounded-md border-2 p-3 text-center ${showNew ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
+                                className={`flex justify-center rounded-md border-2 p-3 text-center ${videoState === "new" ? "border-blue-800 bg-blue-400" : "border-gray-600 bg-gray-900"}`}
                                 type="button"
-                                onClick={() => setShowNew((prev) => !prev)}
-                                title="Toggle showing new videos"
+                                onClick={() => setVideoState("new")}
+                                title="Show new videos"
                             >
                                 <FiPlus />
                             </button>
                             <button
-                                className={`flex justify-center rounded-md border-2 p-3 text-center ${showSaved ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
+                                className={`flex justify-center rounded-md border-2 p-3 text-center ${videoState === "saved" ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
                                 type="button"
-                                onClick={() => setShowSaved((prev) => !prev)}
-                                title="Toggle showing saved videos"
+                                onClick={() => setVideoState("saved")}
+                                title="Show saved videos"
                             >
                                 <FiCheck />
                             </button>
                             <button
-                                className={`flex justify-center rounded-md border-2 p-3 text-center ${showHidden ? "border-green-800 bg-green-600" : "border-gray-600 bg-gray-900"}`}
+                                className={`flex justify-center rounded-md border-2 p-3 text-center ${videoState === "hidden" ? "border-red-800 bg-red-600" : "border-gray-600 bg-gray-900"}`}
                                 type="button"
-                                onClick={() => setShowHidden((prev) => !prev)}
-                                title="Toggle showing hidden videos"
+                                onClick={() => setVideoState("hidden")}
+                                title="Show hidden videos"
                             >
                                 <FiEyeOff />
                             </button>
