@@ -8,29 +8,23 @@ import { createGoogleClientForSession } from "#src/youtube/google";
 import { importVideos } from "#src/youtube/video";
 
 const pageSize = 100;
+const videoStates = ["new", "hidden", "saved"] as const;
+export type VideoState = (typeof videoStates)[number];
 
 export const videoRouter = createTrpcRouter({
     feed: protectedProcedure
         .input(
-            z
-                .object({
-                    cursor: z.object({ id: z.string() }).optional(),
-                    sortDirection: z.enum(["asc", "desc"]).default("asc"),
-                    filters: z
-                        .object({
-                            channelIds: z.array(z.string()).optional(),
-                            title: z.string().optional(),
-                            showNew: z.boolean().default(true),
-                            showSaved: z.boolean().default(false),
-                            showHidden: z.boolean().default(false),
-                        })
-                        .default({}),
-                })
-                .optional()
-                .default({ cursor: undefined, sortDirection: "asc" }),
+            z.object({
+                cursor: z.object({ id: z.string() }).optional(),
+                sortDirection: z.enum(["asc", "desc"]).default("asc"),
+                channelIds: z.array(z.string()).optional(),
+                title: z.string().optional(),
+                videoState: z.enum(videoStates),
+            }),
         )
         .query(async ({ ctx, input }) => {
-            const { cursor, sortDirection, filters } = input;
+            const { cursor, sortDirection, channelIds, title, videoState } =
+                input;
 
             const videos = await ctx.prisma.video.findMany({
                 // We fetch one extra here so that we can use it to grab the
@@ -55,42 +49,31 @@ export const videoRouter = createTrpcRouter({
                 },
                 where: {
                     title: {
-                        contains: filters.title,
+                        contains: title,
                         mode: "insensitive",
                     },
                     channel: {
                         subscriptions: {
                             some: { userId: ctx.session.userId },
                         },
-                        id: { in: filters.channelIds },
+                        id: {
+                            in: channelIds,
+                        },
                     },
-                    OR: [
-                        {
-                            userVideos: filters.showNew
-                                ? { none: { userId: ctx.session.userId } }
-                                : undefined,
-                        },
-                        {
-                            userVideos: filters.showSaved
-                                ? {
-                                      some: {
-                                          userId: ctx.session.userId,
-                                          saved: true,
-                                      },
-                                  }
-                                : undefined,
-                        },
-                        {
-                            userVideos: filters.showHidden
-                                ? {
-                                      some: {
-                                          userId: ctx.session.userId,
-                                          saved: false,
-                                      },
-                                  }
-                                : undefined,
-                        },
-                    ],
+                    userVideos:
+                        // This relies on it being a valid assumption that if
+                        // the video isn't new then it's one of 'saved' or
+                        // 'hidden'. If a new state is introduced it will
+                        // implicitly fall into the else without raising any
+                        // errors, which could result in undesirable behaviour.
+                        videoState === "new"
+                            ? { none: { userId: ctx.session.userId } }
+                            : {
+                                  some: {
+                                      userId: ctx.session.userId,
+                                      saved: videoState === "saved",
+                                  },
+                              },
                 },
                 orderBy: [{ publishedAt: sortDirection }, { id: "asc" }],
             });
