@@ -8,10 +8,9 @@
  */
 
 import { TRPCError, initTRPC } from "@trpc/server";
-import { GaxiosError } from "googleapis-common";
 import type { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 import { prisma } from "#src/db/prisma";
 import { GOOGLE_SIGNED_OUT } from "#src/utils/errors";
 
@@ -121,7 +120,6 @@ export const publicProcedure = t.procedure;
  *
  * @see https://trpc.io/docs/procedures
  */
-
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
     if (!ctx.session) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -134,13 +132,7 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
         },
     });
 
-    if (
-        !res.ok &&
-        res.error.cause instanceof GaxiosError &&
-        typeof res.error.cause.code == "number" &&
-        res.error.cause.code >= 400 &&
-        res.error.cause.code < 500
-    ) {
+    if (!res.ok && isGoogleSignedOut(res.error.cause)) {
         console.log(
             "Google API error, logging user out and redirecting",
             res.error.cause,
@@ -163,3 +155,18 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 
     return res;
 });
+
+function isGoogleSignedOut(error: unknown) {
+    const parseResult = z
+        .object({
+            response: z.object({
+                data: z.object({
+                    error: z.literal("invalid_grant"),
+                }),
+            }),
+            code: z.literal(400),
+        })
+        .safeParse(error);
+
+    return parseResult.success;
+}
