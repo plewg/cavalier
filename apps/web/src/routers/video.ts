@@ -116,6 +116,7 @@ export const videoRouter = createTrpcRouter({
                         requestBody: {
                             snippet: {
                                 playlistId: session.user.watchLaterPlaylistId,
+                                position: null,
                                 resourceId: {
                                     kind: "youtube#video",
                                     videoId,
