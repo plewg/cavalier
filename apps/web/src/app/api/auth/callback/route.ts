@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { youtube } from "@googleapis/youtube";
 import { createId } from "@paralleldrive/cuid2";
 import type { PrismaClient, User } from "@prisma/client";
@@ -23,29 +24,31 @@ import { refreshUserSubscriptions } from "workflows/refresh-user-subscriptions";
 
 export async function GET(req: NextRequest) {
     const code = req.nextUrl.searchParams.get("code");
+    const state = req.nextUrl.searchParams.get("state");
+    const redirectTo =
+        state === null || state.length === 0
+            ? null
+            : Buffer.from(state, "base64url").toString();
+
     if (code === null) {
         throw new Error("oidc code missing");
     }
 
     const client = createGoogleClient();
 
-    // Exchange the OIDC code for the user's token, then extract
-    // the subject from the id_token JWT
+    // Exchange the OIDC code for the user's token, then extract the subject
+    // from the id_token JWT
     const { tokens } = await client.getToken(code);
-
     const parsedTokens = tokensSchema.parse(tokens);
-
     client.setCredentials(parsedTokens);
-
     const decodedIdToken = decode(parsedTokens.id_token);
-
     const parsedIdToken = idTokenSchema.parse(decodedIdToken);
-    const sessionToken = createId();
 
     const user = await prisma.user.findUnique({
         where: { googleId: parsedIdToken.sub },
     });
 
+    const sessionToken = createId();
     const session = await prisma.session.create({
         include: { user: true },
         data: {
@@ -80,7 +83,7 @@ export async function GET(req: NextRequest) {
         maxAge: Duration.fromObject({ years: 10 }).as("seconds"),
     });
 
-    return NextResponse.redirect(env.APP_URL);
+    return NextResponse.redirect(`${env.APP_URL}${redirectTo ?? "/feed"}`);
 }
 
 async function createWatchLaterPlaylist(
