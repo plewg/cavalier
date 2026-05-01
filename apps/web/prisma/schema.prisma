@@ -17,6 +17,7 @@ model User {
 
     lastRefreshedAt      DateTime?
     watchLaterPlaylistId String?   @db.VarChar(34)
+    admin                Boolean   @default(false)
 
     sessions      Session[]
     subscriptions Subscription[]
