@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "admin" BOOLEAN NOT NULL DEFAULT false;
+
+UPDATE "User"
+SET "admin" = true
+WHERE "googleId" IN ('107248601565252371063', '107059594552540259377');
