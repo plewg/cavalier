@@ -1,8 +1,11 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
+import { useContext } from "react";
 import { FiRefreshCw, FiUpload } from "react-icons/fi";
+import { SessionContext } from "#src/providers/session";
 import { useTrpc } from "#src/trpc/react";
+import { UnreachableError } from "#src/utils/errors";
 
 function parseWatchHistory(html: string) {
     const parser = new DOMParser();
@@ -59,6 +62,11 @@ export default function Profile() {
     const importWatchHistory = useMutation(
         api.video.importWatchHistory.mutationOptions(),
     );
+    const session = useContext(SessionContext);
+
+    if (session === null) {
+        throw new UnreachableError("Session can't be null on the profile page");
+    }
 
     async function importHistory(file: File) {
         const html = await file.text();
@@ -70,34 +78,42 @@ export default function Profile() {
 
     return (
         <div className="flex flex-col gap-2 p-2 sm:items-center">
-            <button
-                type="button"
-                className="flex items-center justify-center gap-2 rounded-md border-2 border-gray-600 bg-gray-700 p-3 sm:w-56"
-                title="Refresh your users subscriptions"
-                disabled={refreshUserSubscriptions.isPending}
-                onClick={() => refreshUserSubscriptions.mutate()}
-            >
-                <FiRefreshCw
-                    className={
-                        refreshUserSubscriptions.isPending ? "animate-spin" : ""
-                    }
-                />
-                <span>Refresh Subscriptions</span>
-            </button>
-            <button
-                type="button"
-                className="flex items-center justify-center gap-2 rounded-md border-2 border-gray-600 bg-gray-700 p-3 sm:w-56"
-                title="Refresh all channel uploads"
-                disabled={refreshChannelUploads.isPending}
-                onClick={() => refreshChannelUploads.mutate()}
-            >
-                <FiRefreshCw
-                    className={
-                        refreshChannelUploads.isPending ? "animate-spin" : ""
-                    }
-                />
-                <span>Refresh Uploads</span>
-            </button>
+            {session.user.admin ? (
+                <>
+                    <button
+                        type="button"
+                        className="flex items-center justify-center gap-2 rounded-md border-2 border-gray-600 bg-gray-700 p-3 sm:w-56"
+                        title="Refresh your users subscriptions"
+                        disabled={refreshUserSubscriptions.isPending}
+                        onClick={() => refreshUserSubscriptions.mutate()}
+                    >
+                        <FiRefreshCw
+                            className={
+                                refreshUserSubscriptions.isPending
+                                    ? "animate-spin"
+                                    : ""
+                            }
+                        />
+                        <span>Refresh Subscriptions</span>
+                    </button>
+                    <button
+                        type="button"
+                        className="flex items-center justify-center gap-2 rounded-md border-2 border-gray-600 bg-gray-700 p-3 sm:w-56"
+                        title="Refresh all channel uploads"
+                        disabled={refreshChannelUploads.isPending}
+                        onClick={() => refreshChannelUploads.mutate()}
+                    >
+                        <FiRefreshCw
+                            className={
+                                refreshChannelUploads.isPending
+                                    ? "animate-spin"
+                                    : ""
+                            }
+                        />
+                        <span>Refresh Uploads</span>
+                    </button>
+                </>
+            ) : null}
             <label
                 className="flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-gray-600 bg-gray-700 p-3 sm:w-56"
                 title="ie. the watch-history.html file from Google Takeout"
