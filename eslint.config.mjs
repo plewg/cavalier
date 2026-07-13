@@ -10,9 +10,6 @@ import { defineConfig } from "eslint/config";
 const config = defineConfig([
     relativeIgnoreFile(".gitignore", import.meta.url),
     {
-        ignores: ["apps/web/next-env.d.ts"],
-    },
-    {
         settings: {
             // NOTE: required because n plugin doesn't read the root package.json
             node: { version: "^24" },
