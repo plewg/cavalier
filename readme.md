@@ -26,7 +26,6 @@ trusted_config_paths = ["~/Projects"] # where ~/Projects is wherever you clone y
 - when you open the project in vscode, you should be prompted automatically to
   install the recommended extensions
 - settings can either be configured:
-
     - globally, via the `Preferences: Open User Settings (JSON)` command
     - just for this project, via the
       `Preferences: Open Workspace Settings (JSON)` command
