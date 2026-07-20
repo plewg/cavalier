@@ -37,7 +37,7 @@
         "react-icons": "5.5.0",
         "server-only": "0.0.1",
         "superjson": "2.2.2",
-        "workflow": "4.2.0-beta.71",
+        "workflow": "4.6.0",
         "zod": "3.25.67"
     },
     "devDependencies": {
