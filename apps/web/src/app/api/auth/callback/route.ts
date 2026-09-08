@@ -14,13 +14,13 @@ import { env } from "#src/env";
 import { appToken } from "#src/trpc";
 import { asyncPager } from "#src/utils/async-pager";
 import { UnreachableError } from "#src/utils/errors";
+import { refreshUserSubscriptions } from "#src/workflows/refresh-user-subscriptions";
 import {
     idTokenSchema,
     tokensSchema,
     createGoogleClient,
     pageSize,
 } from "#src/youtube/google";
-import { refreshUserSubscriptions } from "workflows/refresh-user-subscriptions";
 
 export async function GET(req: NextRequest) {
     const code = req.nextUrl.searchParams.get("code");
