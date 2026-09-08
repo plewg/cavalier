@@ -7,11 +7,11 @@ interface Props {
     children: ReactNode;
 }
 
-const TheLogoutler = dynamic(
-    async () => (await import("./the-logoutler")).TheLogoutler,
+const LoggedOutProvider = dynamic(
+    async () => (await import("./logged-out-provider")).LoggedOutProvider,
     { ssr: false },
 );
 
 export default function Layout({ children }: Props) {
-    return <TheLogoutler>{children}</TheLogoutler>;
+    return <LoggedOutProvider>{children}</LoggedOutProvider>;
 }

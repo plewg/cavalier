@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-filename-extension */
 "use client";
 
 import { redirect } from "next/navigation";
@@ -11,5 +12,5 @@ export default function Home() {
         redirect("/feed");
     }
 
-    return <div>Right we are then, be on your way now.</div>;
+    return undefined;
 }

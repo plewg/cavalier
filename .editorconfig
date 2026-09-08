@@ -10,3 +10,11 @@ trim_trailing_whitespace = true
 
 [*.{yaml,yml}]
 indent_size = 2
+
+[.gitconfig]
+indent_style = tab
+
+[[shell]]
+space_redirects = true
+switch_case_indent = true
+binary_next_line = true

@@ -4,8 +4,8 @@ import { DateTime } from "luxon";
 import { start } from "workflow/api";
 import { refreshChannelUploads } from "./refresh-channel-uploads";
 import { prisma } from "#src/db/prisma";
+import { asyncPager } from "#src/utils/async-pager";
 import { UnreachableError } from "#src/utils/errors";
-import { thePaginator } from "#src/utils/pagination";
 import { importChannels } from "#src/youtube/channel";
 import { createGoogleClientForSession, pageSize } from "#src/youtube/google";
 
@@ -30,9 +30,12 @@ export async function refreshSubscriptions(userId: string) {
         const auth = createGoogleClientForSession(session);
         const youtubeApi = youtube({ version: "v3", auth });
 
+        // Snapshot the start time before we begin making requests to the
+        // YouTube API, so we don't risk missing anything that changes between
+        // when we make these requests and when we save to our database.
         const now = DateTime.now().toJSDate();
 
-        const subscriptions = await thePaginator(async (cursor) => {
+        const subscriptions = await asyncPager(async (cursor) => {
             const res = await youtubeApi.subscriptions.list({
                 maxResults: pageSize,
                 mine: true,
@@ -88,6 +91,7 @@ export async function refreshSubscriptions(userId: string) {
             });
         });
 
+        // TODO: track new subscription ids and only refresh those
         await start(refreshChannelUploads, []);
 
         return session.user;
