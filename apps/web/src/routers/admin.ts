@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { createTrpcRouter, protectedProcedure } from "#src/trpc";
-import { refresh } from "workflows/refresh-channel-uploads";
-import { refreshSubscriptions } from "workflows/refresh-user-subscriptions";
+import { refresh } from "#src/workflows/refresh-channel-uploads";
+import { refreshSubscriptions } from "#src/workflows/refresh-user-subscriptions";
 
 const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     if (!ctx.session.user.admin) {
