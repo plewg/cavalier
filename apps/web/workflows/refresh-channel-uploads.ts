@@ -3,8 +3,8 @@ import type { youtube_v3 } from "@googleapis/youtube";
 import type { Channel } from "@prisma/client";
 import { DateTime } from "luxon";
 import { prisma } from "#src/db/prisma";
+import { asyncPager } from "#src/utils/async-pager";
 import { isErrorWithCode, UnreachableError } from "#src/utils/errors";
-import { thePaginator } from "#src/utils/pagination";
 import { createGoogleClient, pageSize } from "#src/youtube/google";
 import { importVideos } from "#src/youtube/video";
 
@@ -75,7 +75,7 @@ async function fetchUploadsPlaylistItems(
     channel: Pick<Channel, "id" | "uploadsRefreshedAt" | "uploadsPlaylistId">,
 ) {
     try {
-        return await thePaginator(async (cursor) => {
+        return await asyncPager(async (cursor) => {
             const res = await youtubeApi.playlistItems.list({
                 // This is super fragile I sure hope it doesn't change haha
                 // ref: https://stackoverflow.com/q/71192605

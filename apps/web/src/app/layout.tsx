@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { FiExternalLink, FiMenu } from "react-icons/fi";
-import { TheSyncler } from "#src/app/the-syncler";
+import { RequestStatusProvider } from "#src/app/request-status-provider";
 import { prisma } from "#src/db/prisma";
 import { Providers } from "#src/providers";
 import { appToken } from "#src/trpc";
@@ -43,7 +43,7 @@ export default async function Layout({ children }: Props) {
                             >
                                 CAVALIER
                             </Link>
-                            <TheSyncler />
+                            <RequestStatusProvider />
                         </div>
 
                         {session === null ? (

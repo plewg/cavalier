@@ -5,7 +5,7 @@ import { useMutationState } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { FiActivity, FiAlertOctagon, FiCheckCircle } from "react-icons/fi";
 
-export function TheSyncler() {
+export function RequestStatusProvider() {
     const activeMutationCount = useMutationState({
         filters: { status: "pending" },
     }).length;

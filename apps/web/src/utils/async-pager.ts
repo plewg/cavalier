@@ -1,4 +1,4 @@
-export async function thePaginator<T>(
+export async function asyncPager<T>(
     callback: (cursor: string | undefined) => Promise<{
         data: T[];
         nextCursor: string | undefined;

@@ -70,6 +70,7 @@ export function useQueryParamState<
 function isFallbackFunction<T>(val: T | (() => T)): val is () => T {
     return typeof val === "function";
 }
+
 function isSetStateFunction<T>(val: SetStateAction<T>): val is (ps: T) => T {
     return typeof val === "function";
 }

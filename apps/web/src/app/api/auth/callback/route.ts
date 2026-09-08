@@ -12,8 +12,8 @@ import { start } from "workflow/api";
 import { prisma } from "#src/db/prisma";
 import { env } from "#src/env";
 import { appToken } from "#src/trpc";
+import { asyncPager } from "#src/utils/async-pager";
 import { UnreachableError } from "#src/utils/errors";
-import { thePaginator } from "#src/utils/pagination";
 import {
     idTokenSchema,
     tokensSchema,
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
             : Buffer.from(state, "base64url").toString();
 
     if (code === null) {
-        throw new Error("oidc code missing");
+        throw new Error("OIDC code missing");
     }
 
     const client = createGoogleClient();
@@ -92,7 +92,7 @@ async function createWatchLaterPlaylist(
     prisma: PrismaClient,
 ) {
     const youtubeApi = youtube("v3");
-    const playlists = await thePaginator(async (cursor) => {
+    const playlists = await asyncPager(async (cursor) => {
         const res = await youtubeApi.playlists.list({
             mine: true,
             auth: client,

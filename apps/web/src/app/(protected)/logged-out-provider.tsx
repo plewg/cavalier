@@ -9,7 +9,7 @@ interface Props {
     children: ReactNode;
 }
 
-export function TheLogoutler({ children }: Props) {
+export function LoggedOutProvider({ children }: Props) {
     const session = useContext(SessionContext);
 
     const url = document.location;

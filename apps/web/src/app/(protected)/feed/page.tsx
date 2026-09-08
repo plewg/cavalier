@@ -85,7 +85,7 @@ export default function Home() {
                 queryClient.setQueryData(videoQueryOptions.queryKey, (old) => {
                     if (old === undefined) {
                         throw new UnreachableError(
-                            "Somehow there aint shit here",
+                            "There must be videos loaded in order to hide a video",
                         );
                     }
 
