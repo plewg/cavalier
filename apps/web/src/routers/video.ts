@@ -177,7 +177,7 @@ export const videoRouter = createTrpcRouter({
             );
 
             // import channels which don't yet exist
-            await importChannels(youtubeApi, newChannelIds);
+            await importChannels(newChannelIds);
 
             // query for existing videos
             const videoIds = input.videos.map((v) => v.videoId);

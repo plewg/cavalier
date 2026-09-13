@@ -1,5 +1,4 @@
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
-import { adminRouter } from "./admin";
 import { authRouter } from "#src/routers/auth";
 import { subscriptionRouter } from "#src/routers/subscription";
 import { videoRouter } from "#src/routers/video";
@@ -12,7 +11,6 @@ import { createTrpcRouter } from "#src/trpc";
  */
 export const appRouter = createTrpcRouter({
     auth: authRouter,
-    admin: adminRouter,
     video: videoRouter,
     subscription: subscriptionRouter,
 });

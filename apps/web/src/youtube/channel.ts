@@ -1,15 +1,14 @@
-import type { youtube_v3 } from "@googleapis/youtube";
+import { youtube } from "@googleapis/youtube";
 import type { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
 import { prisma } from "#src/db/prisma";
 import { asyncForEach, chunk } from "#src/utils/array";
 import { UnreachableError } from "#src/utils/errors";
-import { pageSize } from "#src/youtube/google";
+import { createGoogleClient, pageSize } from "#src/youtube/google";
 
-export async function importChannels(
-    youtubeApi: youtube_v3.Youtube,
-    channelIds: string[],
-) {
+export async function importChannels(channelIds: string[]) {
+    const auth = createGoogleClient();
+    const youtubeApi = youtube({ version: "v3", auth });
     const channelIdChunks = chunk(channelIds, pageSize);
 
     await asyncForEach(channelIdChunks, 10, async (channelIdChunk) => {
