@@ -3,5 +3,11 @@
     "installCommand": "npm install --prefix=../..",
     "git": {
         "deploymentEnabled": false
-    }
+    },
+    "crons": [
+        {
+            "path": "/api/cron/refresh",
+            "schedule": "0 12 * * *"
+        }
+    ]
 }

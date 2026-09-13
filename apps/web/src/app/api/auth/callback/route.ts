@@ -8,13 +8,11 @@ import { Duration } from "luxon";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { start } from "workflow/api";
 import { prisma } from "#src/db/prisma";
 import { env } from "#src/env";
 import { appToken } from "#src/trpc";
 import { asyncPager } from "#src/utils/async-pager";
 import { UnreachableError } from "#src/utils/errors";
-import { refreshUserSubscriptions } from "#src/workflows/refresh-user-subscriptions";
 import {
     idTokenSchema,
     tokensSchema,
@@ -44,7 +42,7 @@ export async function GET(req: NextRequest) {
     const decodedIdToken = decode(parsedTokens.id_token);
     const parsedIdToken = idTokenSchema.parse(decodedIdToken);
 
-    const user = await prisma.user.findUnique({
+    await prisma.user.findUnique({
         where: { googleId: parsedIdToken.sub },
     });
 
@@ -67,10 +65,6 @@ export async function GET(req: NextRequest) {
             },
         },
     });
-
-    if (user == null) {
-        await start(refreshUserSubscriptions, [session.user.id]);
-    }
 
     if (session.user.watchLaterPlaylistId === null) {
         await createWatchLaterPlaylist(session.user, client, prisma);
