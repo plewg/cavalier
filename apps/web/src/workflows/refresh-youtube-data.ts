@@ -14,24 +14,14 @@ import {
 } from "#src/youtube/google";
 import { importVideos } from "#src/youtube/video";
 
-interface UserSubscriptions {
-    userId: string;
-    subscriptions: {
-        raw: string;
-        channelId: string;
-        subscriptionId: string;
-    }[];
-    fetchedAt: number;
-}
-
 export async function syncAllSubscriptions() {
     "use workflow";
 
     const userIds = await getAllUserIds();
     const subscriptions = await fetchSubscriptions(userIds);
     await syncChannels(subscriptions);
-    const newChannelIds = await updateSubscriptions(subscriptions);
-    await fetchChannelUploads(newChannelIds);
+    await updateSubscriptions(subscriptions);
+    await fetchChannelUploads();
 }
 
 export async function syncUserSubscriptions(userId: string) {
@@ -57,13 +47,14 @@ async function getAllUserIds() {
 async function fetchSubscriptions(userIds: string[]) {
     "use step";
 
-    // Snapshot the start time before we begin making requests to the
-    // YouTube API, so we don't risk missing anything that changes between
-    // when we make these requests and when we save to our database.
-    const now = Date.now();
     const userSubscriptions = [];
 
     for (const userId of userIds) {
+        // Snapshot the start time before we begin making requests to the
+        // YouTube API, so we don't risk missing anything that changes between
+        // when we make these requests and when we save to our database.
+        const now = Date.now();
+
         const session = await prisma.session.findFirstOrThrow({
             include: { user: true },
             where: { userId },
@@ -111,6 +102,16 @@ async function fetchSubscriptions(userIds: string[]) {
     return userSubscriptions;
 }
 
+interface UserSubscriptions {
+    userId: string;
+    subscriptions: {
+        raw: string;
+        channelId: string;
+        subscriptionId: string;
+    }[];
+    fetchedAt: number;
+}
+
 async function syncChannels(userSubscriptions: UserSubscriptions[]) {
     "use step";
 
@@ -143,15 +144,13 @@ async function updateSubscriptions(userSubscriptions: UserSubscriptions[]) {
             const newChannels = await tx.subscription.createManyAndReturn({
                 select: { channelId: true },
                 data: subscriptions.map((subscription) => {
-                    const channelId = subscription.channelId;
-
                     return {
-                        channelId,
+                        channelId: subscription.channelId,
                         id: subscription.subscriptionId,
                         userId,
                         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
                         raw: subscription as Prisma.JsonObject,
-                    } satisfies Prisma.SubscriptionCreateManyInput;
+                    };
                 }),
                 skipDuplicates: true,
             });
@@ -169,7 +168,14 @@ async function updateSubscriptions(userSubscriptions: UserSubscriptions[]) {
 
     const results = await Promise.allSettled(userSubPromises);
 
-    // Extract the channelIds
+    const rejected = results
+        .filter((result) => result.status === "rejected")
+        .map((result: { reason: unknown }) => result.reason);
+
+    if (rejected.length > 0) {
+        throw new Error("Failed to update subscriptions", { cause: rejected });
+    }
+
     return results
         .filter((result) => result.status === "fulfilled")
         .flatMap((result) => result.value)
@@ -228,8 +234,6 @@ export async function fetchChannelUploads(channelIds?: string[]) {
             data: { uploadsRefreshedAt: now },
         });
     }
-
-    return [];
 }
 
 async function fetchUploadsPlaylistItems(
