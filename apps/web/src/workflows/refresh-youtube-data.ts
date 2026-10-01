@@ -194,14 +194,6 @@ export async function fetchChannelUploads(channelIds?: string[]) {
         where: {
             id: channelIds === undefined ? undefined : { in: channelIds },
             subscriptions: { some: {} },
-            OR: [
-                { uploadsRefreshedAt: null },
-                {
-                    uploadsRefreshedAt: {
-                        lt: DateTime.now().minus({ hours: 24 }).toJSDate(),
-                    },
-                },
-            ],
         },
     });
 
