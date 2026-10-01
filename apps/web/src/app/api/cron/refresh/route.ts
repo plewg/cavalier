@@ -14,6 +14,5 @@ export async function GET(req: NextRequest) {
 
     await start(syncAllSubscriptions);
 
-    // await start(refreshUserSubscriptions);
     return NextResponse.json({ ok: true });
 }
