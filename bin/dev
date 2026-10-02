@@ -93,7 +93,7 @@ dev::reset() {
     dev::stop
 
     echo '==> delete git ignored files'
-    git clean -ffdX -e '!/.env.local' -e '!/.vscode/settings.json'
+    git clean -ffdX -e '!/.env.local' -e '!/.vscode/settings.json' -e '!/db_dump_local.sql.gz'
 
     echo '==> reload mise'
     mise install
