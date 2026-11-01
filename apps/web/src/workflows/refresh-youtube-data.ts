@@ -50,53 +50,57 @@ async function fetchSubscriptions(userIds: string[]) {
     const userSubscriptions = [];
 
     for (const userId of userIds) {
-        // Snapshot the start time before we begin making requests to the
-        // YouTube API, so we don't risk missing anything that changes between
-        // when we make these requests and when we save to our database.
-        const now = Date.now();
+        try {
+            // Snapshot the start time before we begin making requests to the
+            // YouTube API, so we don't risk missing anything that changes between
+            // when we make these requests and when we save to our database.
+            const now = Date.now();
 
-        const session = await prisma.session.findFirstOrThrow({
-            include: { user: true },
-            where: { userId },
-            orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
-        });
-
-        const auth = createGoogleClientForSession(session);
-        const youtubeApi = youtube({ version: "v3", auth });
-
-        const subscriptions = await asyncPager(async (cursor) => {
-            const res = await youtubeApi.subscriptions.list({
-                maxResults: pageSize,
-                mine: true,
-                pageToken: cursor,
-                part: ["id", "snippet"],
+            const session = await prisma.session.findFirstOrThrow({
+                include: { user: true },
+                where: { userId },
+                orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
             });
 
-            return {
-                data: res.data.items ?? [],
-                nextCursor: res.data.nextPageToken ?? undefined,
-            };
-        });
+            const auth = createGoogleClientForSession(session);
+            const youtubeApi = youtube({ version: "v3", auth });
 
-        userSubscriptions.push({
-            userId,
-            subscriptions: subscriptions.map((subscription) => {
-                if (
-                    subscription.id == null ||
-                    subscription.snippet?.resourceId?.channelId == null
-                ) {
-                    throw new UnreachableError(
-                        "subscription.id and channelId should always be on the YouTube API response",
-                    );
-                }
+            const subscriptions = await asyncPager(async (cursor) => {
+                const res = await youtubeApi.subscriptions.list({
+                    maxResults: pageSize,
+                    mine: true,
+                    pageToken: cursor,
+                    part: ["id", "snippet"],
+                });
+
                 return {
-                    subscriptionId: subscription.id,
-                    channelId: subscription.snippet.resourceId.channelId,
-                    raw: JSON.stringify(subscription),
+                    data: res.data.items ?? [],
+                    nextCursor: res.data.nextPageToken ?? undefined,
                 };
-            }),
-            fetchedAt: now,
-        });
+            });
+
+            userSubscriptions.push({
+                userId,
+                subscriptions: subscriptions.map((subscription) => {
+                    if (
+                        subscription.id == null ||
+                        subscription.snippet?.resourceId?.channelId == null
+                    ) {
+                        throw new UnreachableError(
+                            "subscription.id and channelId should always be on the YouTube API response",
+                        );
+                    }
+                    return {
+                        subscriptionId: subscription.id,
+                        channelId: subscription.snippet.resourceId.channelId,
+                        raw: JSON.stringify(subscription),
+                    };
+                }),
+                fetchedAt: now,
+            });
+        } catch (err) {
+            console.log(err);
+        }
     }
 
     return userSubscriptions;
